@@ -1,0 +1,17 @@
+export const navigationItems = [
+  { title: "Главная", path: "/" },
+  { title: "Объявления", path: "/places" },
+  { title: "Пользователи", path: "/users" },
+  { title: "Жалобы", path: "/reports" },
+  { title: "Отзывы", path: "/reviews" },
+  { title: "Категории", path: "/categories" },
+  { title: "Типы объектов", path: "/place-types" },
+  { title: "Характеристики", path: "/attributes" },
+  { title: "Справочники", path: "/dictionaries" },
+  { title: "Тарифы", path: "/plans" },
+  { title: "Платежи", path: "/payments" },
+  { title: "Рассылки", path: "/mailings" },
+  { title: "Статистика", path: "/statistics" },
+  { title: "Логи модераторов", path: "/moderator-logs" },
+  { title: "Настройки сайта", path: "/settings" },
+];
