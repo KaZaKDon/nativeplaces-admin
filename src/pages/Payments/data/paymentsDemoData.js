@@ -1,0 +1,56 @@
+export const paymentStatusItems = [{
+        value: "all",
+        label: "Все",
+        count: 24,
+    },
+    {
+        value: "paid",
+        label: "Оплачено",
+        count: 18,
+    },
+    {
+        value: "waiting",
+        label: "Ожидают",
+        count: 4,
+    },
+    {
+        value: "failed",
+        label: "Ошибка",
+        count: 2,
+    },
+];
+
+export const paymentsDemoData = [{
+        id: 501,
+        userId: 1,
+        userName: "Иван Петров",
+        placeId: 125,
+        placeTitle: "База отдыха Донская",
+        planTitle: "Стандарт",
+        amount: 1500,
+        status: "paid",
+        createdAt: "09.06.2026",
+    },
+    {
+        id: 502,
+        userId: 2,
+        userName: "Павел Донцов",
+        placeId: 126,
+        placeTitle: "Озеро Лебяжье",
+        planTitle: "Премиум",
+        amount: 3000,
+        status: "waiting",
+        createdAt: "08.06.2026",
+    },
+    {
+        id: 503,
+        userId: 3,
+        userName: "Мария Иванова",
+        placeId: 127,
+        placeTitle: "Дом в Вёшенской",
+        planTitle: "Стандарт",
+        amount: 1500,
+        status: "failed",
+        createdAt: "07.06.2026",
+    },
+];

@@ -1,0 +1,68 @@
+export const userStatusItems = [{
+        value: "all",
+        label: "Все",
+        count: 48,
+    },
+    {
+        value: "active",
+        label: "Активные",
+        count: 42,
+    },
+    {
+        value: "blocked",
+        label: "Заблокированные",
+        count: 3,
+    },
+    {
+        value: "moderator",
+        label: "Модераторы",
+        count: 2,
+    },
+    {
+        value: "admin",
+        label: "Администраторы",
+        count: 1,
+    },
+];
+
+export const usersDemoData = [{
+        id: 1,
+        name: "Иван Петров",
+        email: "ivan@example.ru",
+        phone: "+7 900 111-11-11",
+        role: "user",
+        status: "active",
+        placesCount: 4,
+        createdAt: "01.06.2026",
+    },
+    {
+        id: 2,
+        name: "Павел Донцов",
+        email: "pavel@example.ru",
+        phone: "+7 900 222-22-22",
+        role: "moderator",
+        status: "active",
+        placesCount: 0,
+        createdAt: "25.05.2026",
+    },
+    {
+        id: 3,
+        name: "Мария Иванова",
+        email: "maria@example.ru",
+        phone: "+7 900 333-33-33",
+        role: "user",
+        status: "blocked",
+        placesCount: 2,
+        createdAt: "15.05.2026",
+    },
+    {
+        id: 4,
+        name: "Администратор",
+        email: "admin@native-places.ru",
+        phone: "+7 900 444-44-44",
+        role: "admin",
+        status: "active",
+        placesCount: 0,
+        createdAt: "01.01.2026",
+    },
+];

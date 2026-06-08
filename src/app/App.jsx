@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AdminLayout } from "../layouts/AdminLayout.jsx";
 import { DashboardPage } from "../pages/Dashboard/DashboardPage.jsx";
 import { PlacesPage } from "../pages/Places/PlacesPage.jsx";
+import { PlacePage } from "../pages/Place/PlacePage.jsx";
 import { UsersPage } from "../pages/Users/UsersPage.jsx";
 import { ReportsPage } from "../pages/Reports/ReportsPage.jsx";
 import { ReviewsPage } from "../pages/Reviews/ReviewsPage.jsx";
@@ -15,6 +16,10 @@ import { MailingsPage } from "../pages/Mailings/MailingsPage.jsx";
 import { StatisticsPage } from "../pages/Statistics/StatisticsPage.jsx";
 import { ModeratorLogsPage } from "../pages/ModeratorLogs/ModeratorLogsPage.jsx";
 import { SettingsPage } from "../pages/Settings/SettingsPage.jsx";
+import { UserPage } from "../pages/User/UserPage.jsx";
+import { ReportPage } from "../pages/Report/ReportPage.jsx";
+import { ReviewPage } from "../pages/Review/ReviewPage.jsx";
+import { PaymentPage } from "../pages/Payment/PaymentPage.jsx";
 
 export function App() {
   return (
@@ -22,21 +27,31 @@ export function App() {
       <Route element={<AdminLayout />}>
         <Route index element={<DashboardPage />} />
         <Route path="places" element={<PlacesPage />} />
+        <Route path="places/view/:placeId" element={<PlacePage />} />
         <Route path="places/:status" element={<PlacesPage />} />
         <Route path="users" element={<UsersPage />} />
+        <Route path="users/view/:userId" element={<UserPage />} />
+        <Route path="users/:status" element={<UsersPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="reports/view/:reportId" element={<ReportPage />} />
+        <Route path="reports/:status" element={<ReportsPage />} />
         <Route path="reviews" element={<ReviewsPage />} />
+        <Route path="reviews/view/:reviewId" element={<ReviewPage />} />
+        <Route path="reviews/:status" element={<ReviewsPage />} />
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="place-types" element={<PlaceTypesPage />} />
         <Route path="attributes" element={<AttributesPage />} />
         <Route path="dictionaries" element={<DictionariesPage />} />
         <Route path="plans" element={<PlansPage />} />
         <Route path="payments" element={<PaymentsPage />} />
+        <Route path="payments/view/:paymentId" element={<PaymentPage />} />
+        <Route path="payments/:status" element={<PaymentsPage />} />
         <Route path="mailings" element={<MailingsPage />} />
         <Route path="statistics" element={<StatisticsPage />} />
         <Route path="moderator-logs" element={<ModeratorLogsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

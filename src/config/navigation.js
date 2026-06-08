@@ -21,7 +21,7 @@ export const navigationItems = [{
         path: "/users",
         icon: "👥",
         badge: null,
-        roles: ["admin"],
+        roles: ["admin", "moderator"],
     },
     {
         id: "reports",
@@ -61,7 +61,7 @@ export const navigationItems = [{
         path: "/attributes",
         icon: "⚙️",
         badge: null,
-        roles: ["admin"],
+        roles: ["admin", "moderator"],
     },
     {
         id: "dictionaries",
@@ -69,7 +69,7 @@ export const navigationItems = [{
         path: "/dictionaries",
         icon: "📚",
         badge: null,
-        roles: ["admin"],
+        roles: ["admin", "moderator"],
     },
     {
         id: "plans",
@@ -93,7 +93,7 @@ export const navigationItems = [{
         path: "/mailings",
         icon: "✉️",
         badge: null,
-        roles: ["admin"],
+        roles: ["admin", "moderator"],
     },
     {
         id: "statistics",

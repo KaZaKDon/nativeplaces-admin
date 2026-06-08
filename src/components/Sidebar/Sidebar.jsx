@@ -1,12 +1,13 @@
 import { useMemo } from "react";
 import { NavLink } from "react-router-dom";
 import { navigationItems } from "../../config/navigation";
-
-const currentAdminRole = "admin";
+import { CURRENT_USER } from "../../config/auth";
 
 export function Sidebar() {
     const availableNavigation = useMemo(() => {
-        return navigationItems.filter((item) => item.roles.includes(currentAdminRole));
+        return navigationItems.filter((item) =>
+            item.roles.includes(CURRENT_USER.role)
+        );
     }, []);
 
     return (
@@ -33,11 +34,16 @@ export function Sidebar() {
                             <span className="nav-link__icon" aria-hidden="true">
                                 {item.icon}
                             </span>
-                            <span className="nav-link__label">{item.label}</span>
+
+                            <span className="nav-link__label">
+                                {item.label}
+                            </span>
                         </span>
 
                         {item.badge !== null && item.badge !== undefined ? (
-                            <span className="nav-link__badge">{item.badge}</span>
+                            <span className="nav-link__badge">
+                                {item.badge}
+                            </span>
                         ) : null}
                     </NavLink>
                 ))}

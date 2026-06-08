@@ -1,0 +1,56 @@
+export const reviewStatusItems = [{
+        value: "all",
+        label: "Все",
+        count: 15,
+    },
+    {
+        value: "pending",
+        label: "На проверке",
+        count: 4,
+    },
+    {
+        value: "published",
+        label: "Опубликованы",
+        count: 9,
+    },
+    {
+        value: "rejected",
+        label: "Отклонены",
+        count: 2,
+    },
+];
+
+export const reviewsDemoData = [{
+        id: 201,
+        placeId: 125,
+        placeTitle: "База отдыха Донская",
+        userId: 1,
+        userName: "Иван Петров",
+        rating: 5,
+        status: "pending",
+        createdAt: "09.06.2026",
+        text: "Отличное место для отдыха.",
+    },
+    {
+        id: 202,
+        placeId: 126,
+        placeTitle: "Озеро Лебяжье",
+        userId: 2,
+        userName: "Павел Донцов",
+        rating: 4,
+        status: "published",
+        createdAt: "08.06.2026",
+        text: "Хорошая рыбалка, красивое место.",
+    },
+    {
+        id: 203,
+        placeId: 127,
+        placeTitle: "Дом в Вёшенской",
+        userId: 3,
+        userName: "Мария Иванова",
+        rating: 1,
+        status: "rejected",
+        createdAt: "07.06.2026",
+        text: "Отзыв нарушает правила площадки.",
+    },
+];

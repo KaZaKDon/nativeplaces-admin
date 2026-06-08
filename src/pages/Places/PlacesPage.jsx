@@ -1,67 +1,82 @@
-import { Link } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import { PlacesStatusTabs } from "./components/PlacesStatusTabs";
+import { PlacesTable } from "./components/PlacesTable";
+import { PlacesFilters } from "./components/PlacesFilters";
+import {
+  placesDemoData,
+  placeStatusItems,
+} from "./data/placesDemoData";
 
-const placeStatusCards = [
-  {
-    title: "На модерации",
-    count: 12,
-    status: "pending",
-    description: "Новые объявления, которые ждут проверки администратора или модератора.",
-  },
-  {
-    title: "Опубликованные",
-    count: 38,
-    status: "published",
-    description: "Объявления, которые уже видны пользователям на основном сайте.",
-  },
-  {
-    title: "Отклонённые",
-    count: 4,
-    status: "rejected",
-    description: "Объявления, которые не прошли модерацию и требуют исправлений.",
-  },
-  {
-    title: "Архив",
-    count: 7,
-    status: "archived",
-    description: "Снятые, просроченные или завершённые объявления.",
-  },
-];
+import "./PlacesPage.css";
 
 export function PlacesPage() {
+  const { status } = useParams();
+
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
+
+  const currentStatus = status || "all";
+
+  const categories = useMemo(() => {
+    return Array.from(new Set(placesDemoData.map((place) => place.category)));
+  }, []);
+
+  const filteredPlaces = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return placesDemoData.filter((place) => {
+      const matchesStatus =
+        currentStatus === "all" || place.status === currentStatus;
+
+      const matchesCategory =
+        category === "all" || place.category === category;
+
+      const matchesSearch =
+        normalizedSearch === "" ||
+        place.title.toLowerCase().includes(normalizedSearch) ||
+        place.owner.toLowerCase().includes(normalizedSearch) ||
+        place.category.toLowerCase().includes(normalizedSearch) ||
+        place.type.toLowerCase().includes(normalizedSearch);
+
+      return matchesStatus && matchesCategory && matchesSearch;
+    });
+  }, [currentStatus, search, category]);
+
+  function resetFilters() {
+    setSearch("");
+    setCategory("all");
+  }
+
   return (
     <section className="page">
-      <header className="page-header">
+      <div className="page-header">
         <div>
-          <p className="eyebrow">Управление объявлениями</p>
-          <h2>Объявления</h2>
+          <p className="eyebrow">Объявления</p>
+
+          <h2>Управление объявлениями</h2>
+
           <p>
-            Здесь будет общий раздел объявлений. Сначала выбираем нужный статус, затем
-            открываем список и карточку модерации.
+            Здесь будет список всех объявлений, модерация, публикация,
+            отклонение и перенос в архив.
           </p>
         </div>
-        <span className="status-badge">Демо-счётчики</span>
-      </header>
 
-      <div className="status-grid">
-        {placeStatusCards.map((card) => (
-          <Link key={card.status} to={`/places/${card.status}`} className="status-card">
-            <span className={`status-card__dot status-card__dot--${card.status}`} />
-            <div>
-              <span className="status-card__label">{card.title}</span>
-              <strong>{card.count}</strong>
-              <p>{card.description}</p>
-            </div>
-          </Link>
-        ))}
+        <span className="status-badge">Демо-данные</span>
       </div>
 
-      <div className="empty-state">
-        <h3>Следующий шаг</h3>
-        <p>
-          После подключения API эти счётчики будут приходить из базы, а карточки будут
-          открывать реальные списки объявлений по статусам.
-        </p>
-      </div>
+      <PlacesStatusTabs items={placeStatusItems} />
+
+      <PlacesFilters
+        search={search}
+        category={category}
+        categories={categories}
+        onSearchChange={setSearch}
+        onCategoryChange={setCategory}
+        onReset={resetFilters}
+      />
+
+      <PlacesTable places={filteredPlaces} />
     </section>
   );
 }
