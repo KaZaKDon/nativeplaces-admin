@@ -1,19 +1,20 @@
-import { useMemo } from "react";
 import { NavLink } from "react-router-dom";
 import { navigationItems } from "../../config/navigation";
 import { CURRENT_USER } from "../../config/auth";
+import { canAccessByRole } from "../../utils/access";
 
 export function Sidebar() {
-    const availableNavigation = useMemo(() => {
-        return navigationItems.filter((item) =>
-            item.roles.includes(CURRENT_USER.role)
-        );
-    }, []);
+    const userRole = CURRENT_USER.role;
+
+    const availableNavigation = navigationItems.filter((item) =>
+        canAccessByRole(item.roles, userRole)
+    );
 
     return (
         <aside className="sidebar">
             <div className="brand">
                 <span className="brand__mark">NP</span>
+
                 <span>
                     <strong>Native Places</strong>
                     <span>Панель управления</span>
@@ -31,7 +32,10 @@ export function Sidebar() {
                         }
                     >
                         <span className="nav-link__main">
-                            <span className="nav-link__icon" aria-hidden="true">
+                            <span
+                                className="nav-link__icon"
+                                aria-hidden="true"
+                            >
                                 {item.icon}
                             </span>
 
@@ -40,11 +44,11 @@ export function Sidebar() {
                             </span>
                         </span>
 
-                        {item.badge !== null && item.badge !== undefined ? (
+                        {item.badge != null && (
                             <span className="nav-link__badge">
                                 {item.badge}
                             </span>
-                        ) : null}
+                        )}
                     </NavLink>
                 ))}
             </nav>

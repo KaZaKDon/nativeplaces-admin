@@ -1,11 +1,15 @@
 import { useMemo } from "react";
 import { useParams } from "react-router-dom";
+
 import { ReviewsStatusTabs } from "./components/ReviewsStatusTabs";
 import { ReviewsTable } from "./components/ReviewsTable";
+
 import {
   reviewsDemoData,
   reviewStatusItems,
 } from "./data/reviewsDemoData";
+
+import { filterReviews } from "./utils/reviewsFilters";
 
 import "./ReviewsPage.css";
 
@@ -15,11 +19,7 @@ export function ReviewsPage() {
   const currentStatus = status || "all";
 
   const filteredReviews = useMemo(() => {
-    if (currentStatus === "all") {
-      return reviewsDemoData;
-    }
-
-    return reviewsDemoData.filter((review) => review.status === currentStatus);
+    return filterReviews(reviewsDemoData, currentStatus);
   }, [currentStatus]);
 
   return (

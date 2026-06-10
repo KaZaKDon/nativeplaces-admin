@@ -3,16 +3,19 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { BackButton } from "../../components/BackButton/BackButton";
 import { StatusBadge } from "../../components/StatusBadge/StatusBadge";
 import { paymentsDemoData } from "../Payments/data/paymentsDemoData";
+import { NotFoundState } from "../../components/NotFoundState/NotFoundState";
 
 import "./PaymentPage.css";
+
+function findDemoPaymentById(paymentId) {
+    return paymentsDemoData.find((item) => String(item.id) === String(paymentId));
+}
 
 export function PaymentPage() {
     const { paymentId } = useParams();
     const navigate = useNavigate();
 
-    const payment =
-        paymentsDemoData.find((item) => item.id === Number(paymentId)) ||
-        paymentsDemoData[0];
+    const payment = findDemoPaymentById(paymentId);
 
     function handleConfirm() {
         alert("Демо: платёж подтверждён");
@@ -22,6 +25,16 @@ export function PaymentPage() {
     function handleReject() {
         alert("Демо: платёж отклонён");
         navigate("/payments");
+    }
+
+    if (!payment) {
+        return (
+            <NotFoundState
+                eyebrow={`Платёж #${paymentId}`}
+                title="Платёж не найден"
+                description="В демо-данных нет платежа с таким ID. Позже здесь будет обработка ответа API."
+            />
+        );
     }
 
     return (
@@ -63,7 +76,8 @@ export function PaymentPage() {
 
                         <p>
                             Здесь будет информация о ручной оплате, квитанции, назначении
-                            платежа или ответ платёжной системы после подключения онлайн-оплаты.
+                            платежа или ответ платёжной системы после подключения
+                            онлайн-оплаты.
                         </p>
                     </article>
                 </div>

@@ -3,10 +3,8 @@ import { useParams } from "react-router-dom";
 import { PlacesStatusTabs } from "./components/PlacesStatusTabs";
 import { PlacesTable } from "./components/PlacesTable";
 import { PlacesFilters } from "./components/PlacesFilters";
-import {
-  placesDemoData,
-  placeStatusItems,
-} from "./data/placesDemoData";
+import { placesDemoData, placeStatusItems } from "./data/placesDemoData";
+import { filterPlaces, getPlaceCategories } from "./utils/placesFilters";
 
 import "./PlacesPage.css";
 
@@ -19,27 +17,14 @@ export function PlacesPage() {
   const currentStatus = status || "all";
 
   const categories = useMemo(() => {
-    return Array.from(new Set(placesDemoData.map((place) => place.category)));
+    return getPlaceCategories(placesDemoData);
   }, []);
 
   const filteredPlaces = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
-
-    return placesDemoData.filter((place) => {
-      const matchesStatus =
-        currentStatus === "all" || place.status === currentStatus;
-
-      const matchesCategory =
-        category === "all" || place.category === category;
-
-      const matchesSearch =
-        normalizedSearch === "" ||
-        place.title.toLowerCase().includes(normalizedSearch) ||
-        place.owner.toLowerCase().includes(normalizedSearch) ||
-        place.category.toLowerCase().includes(normalizedSearch) ||
-        place.type.toLowerCase().includes(normalizedSearch);
-
-      return matchesStatus && matchesCategory && matchesSearch;
+    return filterPlaces(placesDemoData, {
+      status: currentStatus,
+      search,
+      category,
     });
   }, [currentStatus, search, category]);
 

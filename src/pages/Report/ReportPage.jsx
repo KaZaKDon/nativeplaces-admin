@@ -2,6 +2,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { StatusBadge } from "../../components/StatusBadge/StatusBadge";
 import { reportsDemoData } from "../Reports/data/reportsDemoData";
 import { BackButton } from "../../components/BackButton/BackButton";
+import { NotFoundState } from "../../components/NotFoundState/NotFoundState";
 
 import "./ReportPage.css";
 
@@ -11,13 +12,19 @@ const reportTypeLabels = {
     review: "Отзыв",
 };
 
+function findDemoReportById(reportId) {
+    return reportsDemoData.find((item) => String(item.id) === String(reportId));
+}
+
+function getReportTypeLabel(type) {
+    return reportTypeLabels[type] || type;
+}
+
 export function ReportPage() {
     const { reportId } = useParams();
     const navigate = useNavigate();
 
-    const report =
-        reportsDemoData.find((item) => item.id === Number(reportId)) ||
-        reportsDemoData[0];
+    const report = findDemoReportById(reportId);
 
     function handleTakeInWork() {
         alert("Демо: жалоба взята в работу");
@@ -33,20 +40,29 @@ export function ReportPage() {
         navigate("/reports");
     }
 
+    if (!report) {
+        return (
+            <NotFoundState
+                eyebrow={`Платёж #${reportId}`}
+                title="Платёж не найден"
+                description="В демо-данных нет платежа с таким ID. Позже здесь будет обработка ответа API."
+            />
+        );
+    }
+
+    const reportTypeLabel = getReportTypeLabel(report.type);
+
     return (
         <section className="page">
-
             <BackButton />
-            
+
             <div className="page-header">
                 <div>
                     <p className="eyebrow">Жалоба #{report.id}</p>
 
                     <h2>{report.title}</h2>
 
-                    <p>
-                        Тип жалобы: {reportTypeLabels[report.type] || report.type}
-                    </p>
+                    <p>Тип жалобы: {reportTypeLabel}</p>
                 </div>
 
                 <StatusBadge status={report.status} />
@@ -59,7 +75,8 @@ export function ReportPage() {
 
                         <p>
                             Пользователь сообщил о проблеме. Здесь будет полный текст жалобы,
-                            комментарии, вложения и дополнительные данные после подключения API.
+                            комментарии, вложения и дополнительные данные после подключения
+                            API.
                         </p>
                     </article>
 
@@ -94,7 +111,7 @@ export function ReportPage() {
 
                             <div>
                                 <span>Тип</span>
-                                <strong>{reportTypeLabels[report.type] || report.type}</strong>
+                                <strong>{reportTypeLabel}</strong>
                             </div>
 
                             <div>

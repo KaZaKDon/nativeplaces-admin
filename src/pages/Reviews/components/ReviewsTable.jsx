@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+
+import { EmptyState } from "../../../components/EmptyState/EmptyState";
 import { StatusBadge } from "../../../components/StatusBadge/StatusBadge";
 
 function renderRating(rating) {
@@ -8,9 +10,9 @@ function renderRating(rating) {
 export function ReviewsTable({ reviews }) {
     if (!reviews.length) {
         return (
-            <div className="reviews-empty">
+            <EmptyState className="reviews-empty">
                 Отзывов в этом разделе пока нет.
-            </div>
+            </EmptyState>
         );
     }
 
@@ -46,13 +48,19 @@ export function ReviewsTable({ reviews }) {
                             </td>
 
                             <td>
-                                <Link className="table-inline-link" to={`/places/view/${review.placeId}`}>
+                                <Link
+                                    className="table-inline-link"
+                                    to={`/places/view/${review.placeId}`}
+                                >
                                     {review.placeTitle}
                                 </Link>
                             </td>
 
                             <td>
-                                <Link className="table-inline-link" to={`/users/view/${review.userId}`}>
+                                <Link
+                                    className="table-inline-link"
+                                    to={`/users/view/${review.userId}`}
+                                >
                                     {review.userName}
                                 </Link>
                             </td>

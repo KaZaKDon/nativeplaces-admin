@@ -10,13 +10,15 @@ export function PlaceModeration({ onPublish, onReject }) {
     }
 
     function handleReject() {
-        if (comment.trim() === "") {
+        const trimmedComment = comment.trim();
+
+        if (trimmedComment === "") {
             setError("Укажите причину отклонения объявления");
             return;
         }
 
         setError("");
-        onReject?.(comment.trim());
+        onReject?.(trimmedComment);
     }
 
     return (

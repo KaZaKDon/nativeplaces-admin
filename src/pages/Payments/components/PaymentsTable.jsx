@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
+
+import { EmptyState } from "../../../components/EmptyState/EmptyState";
 import { StatusBadge } from "../../../components/StatusBadge/StatusBadge";
 
 export function PaymentsTable({ payments }) {
     if (!payments.length) {
         return (
-            <div className="payments-empty">
+            <EmptyState className="payments-empty">
                 Платежей в этом разделе пока нет.
-            </div>
+            </EmptyState>
         );
     }
 
@@ -65,10 +67,7 @@ export function PaymentsTable({ payments }) {
                             <td>{payment.createdAt}</td>
 
                             <td>
-                                <Link
-                                    className="table-action"
-                                    to={`/payments/view/${payment.id}`}
-                                >
+                                <Link className="table-action" to={`/payments/view/${payment.id}`}>
                                     Открыть
                                 </Link>
                             </td>

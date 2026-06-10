@@ -8,16 +8,88 @@ import { PlaceModeration } from "./components/PlaceModeration";
 import { PlacePlacementCard } from "./components/PlacePlacementCard";
 import { PlaceHistory } from "./components/PlaceHistory";
 import { BackButton } from "../../components/BackButton/BackButton";
+import { NotFoundState } from "../../components/NotFoundState/NotFoundState";
 
 import "./PlacePage.css";
 
+function findDemoPlaceById(placeId) {
+    if (String(placeDemoData.id) === String(placeId)) {
+        return placeDemoData;
+    }
+
+    return null;
+}
+
+function createMainInfo(place) {
+    return [
+        {
+            label: "ID",
+            value: `#${place.id}`,
+        },
+        {
+            label: "Категория",
+            value: place.category,
+        },
+        {
+            label: "Тип",
+            value: place.type,
+        },
+        {
+            label: "Создано",
+            value: place.createdAt,
+        },
+        {
+            label: "Обновлено",
+            value: place.updatedAt,
+        },
+    ];
+}
+
+function createOwnerInfo(place) {
+    return [
+        {
+            label: "Имя",
+            value: place.owner.name,
+        },
+        {
+            label: "Email",
+            value: place.owner.email,
+        },
+        {
+            label: "Телефон",
+            value: place.owner.phone,
+        },
+    ];
+}
+
+function createContactInfo(place) {
+    return [
+        {
+            label: "Контакт",
+            value: place.contacts.name,
+        },
+        {
+            label: "Телефон",
+            value: place.contacts.phone,
+        },
+        {
+            label: "Telegram",
+            value: place.contacts.telegram,
+        },
+        {
+            label: "Email",
+            value: place.contacts.email,
+        },
+    ];
+}
+
 export function PlacePage() {
     const { placeId } = useParams();
-
     const navigate = useNavigate();
     const location = useLocation();
 
     const backTo = location.state?.from || "/places/pending";
+    const place = findDemoPlaceById(placeId);
 
     function handlePublish() {
         alert("Демо: объявление опубликовано");
@@ -29,78 +101,34 @@ export function PlacePage() {
         navigate(backTo);
     }
 
-    const mainInfo = [
-        {
-            label: "ID",
-            value: `#${placeDemoData.id}`,
-        },
-        {
-            label: "Категория",
-            value: placeDemoData.category,
-        },
-        {
-            label: "Тип",
-            value: placeDemoData.type,
-        },
-        {
-            label: "Создано",
-            value: placeDemoData.createdAt,
-        },
-        {
-            label: "Обновлено",
-            value: placeDemoData.updatedAt,
-        },
-    ];
+    if (!place) {
+        return (
+            <NotFoundState
+                eyebrow={`Платёж #${placeId}`}
+                title="Платёж не найден"
+                description="В демо-данных нет объявления с таким ID. Позже здесь будет обработка ответа API."
+            />
+        );
+    }
 
-    const ownerInfo = [
-        {
-            label: "Имя",
-            value: placeDemoData.owner.name,
-        },
-        {
-            label: "Email",
-            value: placeDemoData.owner.email,
-        },
-        {
-            label: "Телефон",
-            value: placeDemoData.owner.phone,
-        },
-    ];
-
-    const contactInfo = [
-        {
-            label: "Контакт",
-            value: placeDemoData.contacts.name,
-        },
-        {
-            label: "Телефон",
-            value: placeDemoData.contacts.phone,
-        },
-        {
-            label: "Telegram",
-            value: placeDemoData.contacts.telegram,
-        },
-        {
-            label: "Email",
-            value: placeDemoData.contacts.email,
-        },
-    ];
+    const mainInfo = createMainInfo(place);
+    const ownerInfo = createOwnerInfo(place);
+    const contactInfo = createContactInfo(place);
 
     return (
         <section className="page">
+            <BackButton fallbackTo="/places/pending" />
 
-            <BackButton />
-            
             <div className="page-header">
-                <div>                    
-                    <p className="eyebrow">Объявление #{placeId}</p>
+                <div>
+                    <p className="eyebrow">Объявление #{place.id}</p>
 
-                    <h2>{placeDemoData.title}</h2>
+                    <h2>{place.title}</h2>
 
-                    <p>{placeDemoData.shortDescription}</p>
+                    <p>{place.shortDescription}</p>
                 </div>
 
-                <StatusBadge status={placeDemoData.status} />
+                <StatusBadge status={place.status} />
             </div>
 
             <div className="place-page-grid">
@@ -108,30 +136,24 @@ export function PlacePage() {
                     <article className="place-section">
                         <h3>Описание</h3>
 
-                        <p>{placeDemoData.fullDescription}</p>
+                        <p>{place.fullDescription}</p>
                     </article>
 
                     <article className="place-section">
                         <h3>Фотографии</h3>
 
-                        <PlaceGallery
-                            images={placeDemoData.images}
-                        />
+                        <PlaceGallery images={place.images} />
                     </article>
 
                     <article className="place-section">
                         <h3>Характеристики</h3>
 
-                        <PlaceAttributes
-                            attributes={placeDemoData.attributes}
-                        />
+                        <PlaceAttributes attributes={place.attributes} />
                     </article>
                 </div>
 
                 <aside className="place-page-aside">
-                    <PlacePlacementCard
-                        placement={placeDemoData.placement}
-                    />
+                    <PlacePlacementCard placement={place.placement} />
 
                     <PlaceInfoCard title="Основное" items={mainInfo} />
 
@@ -140,18 +162,15 @@ export function PlacePage() {
                         items={ownerInfo}
                         action={{
                             label: "Открыть",
-                            to: `/users/view/${placeDemoData.owner.id}`,
+                            to: `/users/view/${place.owner.id}`,
                         }}
                     />
 
                     <PlaceInfoCard title="Контакты объявления" items={contactInfo} />
 
-                    <PlaceModeration
-                        onPublish={handlePublish}
-                        onReject={handleReject}
-                    />
+                    <PlaceModeration onPublish={handlePublish} onReject={handleReject} />
 
-                    <PlaceHistory history={placeDemoData.history} />
+                    <PlaceHistory history={place.history} />
                 </aside>
             </div>
         </section>

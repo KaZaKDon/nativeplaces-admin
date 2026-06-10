@@ -1,11 +1,6 @@
 import { Link } from "react-router-dom";
 import { StatusBadge } from "../../../components/StatusBadge/StatusBadge";
-
-const roleLabels = {
-    user: "Пользователь",
-    moderator: "Модератор",
-    admin: "Администратор",
-};
+import { roleLabels } from "../../../config/roles";
 
 export function UsersTable({ users }) {
     if (!users.length) {

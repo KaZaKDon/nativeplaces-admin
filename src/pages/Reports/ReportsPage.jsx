@@ -1,11 +1,15 @@
 import { useMemo } from "react";
 import { useParams } from "react-router-dom";
+
 import { ReportsStatusTabs } from "./components/ReportsStatusTabs";
 import { ReportsTable } from "./components/ReportsTable";
+
 import {
   reportsDemoData,
   reportStatusItems,
 } from "./data/reportsDemoData";
+
+import { filterReports } from "./utils/reportsFilters";
 
 import "./ReportsPage.css";
 
@@ -15,11 +19,7 @@ export function ReportsPage() {
   const currentStatus = status || "all";
 
   const filteredReports = useMemo(() => {
-    if (currentStatus === "all") {
-      return reportsDemoData;
-    }
-
-    return reportsDemoData.filter((report) => report.status === currentStatus);
+    return filterReports(reportsDemoData, currentStatus);
   }, [currentStatus]);
 
   return (
@@ -31,8 +31,8 @@ export function ReportsPage() {
           <h2>Обработка жалоб</h2>
 
           <p>
-            Здесь модераторы рассматривают жалобы на объявления, пользователей
-            и отзывы.
+            Здесь модераторы рассматривают жалобы на объявления,
+            пользователей и отзывы.
           </p>
         </div>
 

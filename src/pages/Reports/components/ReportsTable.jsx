@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { StatusBadge } from "../../../components/StatusBadge/StatusBadge";
+import { EmptyState } from "../../../components/EmptyState/EmptyState";
 
 const reportTypeLabels = {
     place: "Объявление",
@@ -10,9 +11,9 @@ const reportTypeLabels = {
 export function ReportsTable({ reports }) {
     if (!reports.length) {
         return (
-            <div className="reports-empty">
+            <EmptyState className="reports-empty">
                 Жалоб в этом разделе пока нет.
-            </div>
+            </EmptyState>
         );
     }
 

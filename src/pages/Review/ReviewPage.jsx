@@ -4,21 +4,33 @@ import { StatusBadge } from "../../components/StatusBadge/StatusBadge";
 import { BackButton } from "../../components/BackButton/BackButton";
 
 import { reviewsDemoData } from "../Reviews/data/reviewsDemoData";
+import { NotFoundState } from "../../components/NotFoundState/NotFoundState";
 
 import "./ReviewPage.css";
+
+function findDemoReviewById(reviewId) {
+    return reviewsDemoData.find((item) => String(item.id) === String(reviewId));
+}
 
 export function ReviewPage() {
     const { reviewId } = useParams();
     const navigate = useNavigate();
 
-    const review =
-        reviewsDemoData.find(
-            (item) => item.id === Number(reviewId)
-        ) || reviewsDemoData[0];
+    const review = findDemoReviewById(reviewId);
 
     function handleHide() {
         alert("Демо: отзыв скрыт");
         navigate("/reviews");
+    }
+
+    if (!review) {
+        return (
+            <NotFoundState
+                eyebrow={`Платёж #${reviewId}`}
+                title="Платёж не найден"
+                description="В демо-данных нет платежа с таким ID. Позже здесь будет обработка ответа API."
+            />
+        );
     }
 
     return (
@@ -27,13 +39,9 @@ export function ReviewPage() {
 
             <div className="page-header">
                 <div>
-                    <p className="eyebrow">
-                        Отзыв #{review.id}
-                    </p>
+                    <p className="eyebrow">Отзыв #{review.id}</p>
 
-                    <h2>
-                        Отзыв пользователя
-                    </h2>
+                    <h2>Отзыв пользователя</h2>
                 </div>
 
                 <StatusBadge status={review.status} />
@@ -51,15 +59,11 @@ export function ReviewPage() {
                         <h3>Связанные данные</h3>
 
                         <div className="review-links">
-                            <Link
-                                to={`/places/view/${review.placeId}`}
-                            >
+                            <Link to={`/places/view/${review.placeId}`}>
                                 Объявление: {review.placeTitle}
                             </Link>
 
-                            <Link
-                                to={`/users/view/${review.userId}`}
-                            >
+                            <Link to={`/users/view/${review.userId}`}>
                                 Пользователь: {review.userName}
                             </Link>
                         </div>
@@ -92,10 +96,7 @@ export function ReviewPage() {
                         <h3>Модерация</h3>
 
                         <div className="review-actions">
-                            <button
-                                type="button"
-                                onClick={handleHide}
-                            >
+                            <button type="button" onClick={handleHide}>
                                 Скрыть отзыв
                             </button>
                         </div>

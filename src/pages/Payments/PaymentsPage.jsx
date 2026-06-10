@@ -1,11 +1,15 @@
 import { useMemo } from "react";
 import { useParams } from "react-router-dom";
+
 import { PaymentsStatusTabs } from "./components/PaymentsStatusTabs";
 import { PaymentsTable } from "./components/PaymentsTable";
+
 import {
   paymentsDemoData,
   paymentStatusItems,
 } from "./data/paymentsDemoData";
+
+import { filterPayments } from "./utils/paymentsFilters";
 
 import "./PaymentsPage.css";
 
@@ -15,11 +19,7 @@ export function PaymentsPage() {
   const currentStatus = status || "all";
 
   const filteredPayments = useMemo(() => {
-    if (currentStatus === "all") {
-      return paymentsDemoData;
-    }
-
-    return paymentsDemoData.filter((payment) => payment.status === currentStatus);
+    return filterPayments(paymentsDemoData, currentStatus);
   }, [currentStatus]);
 
   return (

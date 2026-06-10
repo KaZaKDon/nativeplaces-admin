@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { EmptyState } from "../../../components/EmptyState/EmptyState";
 import { StatusBadge } from "../../../components/StatusBadge/StatusBadge";
 
 export function PlacesTable({ places }) {
@@ -6,9 +7,9 @@ export function PlacesTable({ places }) {
 
     if (!places.length) {
         return (
-            <div className="places-empty">
+            <EmptyState className="places-empty">
                 Объявлений в этом разделе пока нет.
-            </div>
+            </EmptyState>
         );
     }
 
