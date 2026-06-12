@@ -1,12 +1,29 @@
-import { Navigate } from "react-router-dom";
-import { CURRENT_USER } from "../../config/auth";
+import { EmptyState } from "../EmptyState/EmptyState";
 import { canAccessByRole } from "../../utils/access";
+import { useAdminAuth } from "../../context/useAdminAuth";
 
 export function RequireRole({ roles, children }) {
-    const userRole = CURRENT_USER.role;
+    const {
+        role,
+        isLoading,
+    } = useAdminAuth();
 
-    if (!canAccessByRole(roles, userRole)) {
-        return <Navigate to="/" replace />;
+    if (isLoading) {
+        return (
+            <EmptyState>
+                Проверяем права доступа...
+            </EmptyState>
+        );
+    }
+
+    if (!canAccessByRole(roles, role)) {
+        return (
+            <section className="page">
+                <EmptyState>
+                    Недостаточно прав для просмотра этого раздела.
+                </EmptyState>
+            </section>
+        );
     }
 
     return children;

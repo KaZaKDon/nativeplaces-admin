@@ -1,8 +1,11 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AdminLayout } from "../layouts/AdminLayout.jsx";
+
+import { RequireAuth } from "../components/RequireAuth/RequireAuth.jsx";
 import { RequireRole } from "../components/RequireRole/RequireRole.jsx";
+import { AdminLayout } from "../layouts/AdminLayout.jsx";
 
 import { DashboardPage } from "../pages/Dashboard/DashboardPage.jsx";
+import { LoginPage } from "../pages/Login/LoginPage.jsx";
 
 import { PlacesPage } from "../pages/Places/PlacesPage.jsx";
 import { PlacePage } from "../pages/Place/PlacePage.jsx";
@@ -34,84 +37,92 @@ const ADMIN_ROLES = ["admin"];
 const MODERATION_ROLES = ["admin", "moderator"];
 
 const placeRoutes = [
-  { path: "places", element: <PlacesPage />, roles: MODERATION_ROLES },
-  { path: "places/view/:placeId", element: <PlacePage />, roles: MODERATION_ROLES },
-  { path: "places/:status", element: <PlacesPage />, roles: MODERATION_ROLES },
+    { path: "places", element: <PlacesPage />, roles: MODERATION_ROLES },
+    { path: "places/view/:placeId", element: <PlacePage />, roles: MODERATION_ROLES },
+    { path: "places/:status", element: <PlacesPage />, roles: MODERATION_ROLES },
 ];
 
 const userRoutes = [
-  { path: "users", element: <UsersPage />, roles: MODERATION_ROLES },
-  { path: "users/view/:userId", element: <UserPage />, roles: MODERATION_ROLES },
-  { path: "users/:status", element: <UsersPage />, roles: MODERATION_ROLES },
+    { path: "users", element: <UsersPage />, roles: MODERATION_ROLES },
+    { path: "users/view/:userId", element: <UserPage />, roles: MODERATION_ROLES },
+    { path: "users/:status", element: <UsersPage />, roles: MODERATION_ROLES },
 ];
 
 const reportRoutes = [
-  { path: "reports", element: <ReportsPage />, roles: MODERATION_ROLES },
-  { path: "reports/view/:reportId", element: <ReportPage />, roles: MODERATION_ROLES },
-  { path: "reports/:status", element: <ReportsPage />, roles: MODERATION_ROLES },
+    { path: "reports", element: <ReportsPage />, roles: MODERATION_ROLES },
+    { path: "reports/view/:reportId", element: <ReportPage />, roles: MODERATION_ROLES },
+    { path: "reports/:status", element: <ReportsPage />, roles: MODERATION_ROLES },
 ];
 
 const reviewRoutes = [
-  { path: "reviews", element: <ReviewsPage />, roles: MODERATION_ROLES },
-  { path: "reviews/view/:reviewId", element: <ReviewPage />, roles: MODERATION_ROLES },
-  { path: "reviews/:status", element: <ReviewsPage />, roles: MODERATION_ROLES },
+    { path: "reviews", element: <ReviewsPage />, roles: MODERATION_ROLES },
+    { path: "reviews/view/:reviewId", element: <ReviewPage />, roles: MODERATION_ROLES },
+    { path: "reviews/:status", element: <ReviewsPage />, roles: MODERATION_ROLES },
 ];
 
 const contentRoutes = [
-  { path: "categories", element: <CategoriesPage />, roles: ADMIN_ROLES },
-  { path: "place-types", element: <PlaceTypesPage />, roles: ADMIN_ROLES },
-  { path: "attributes", element: <AttributesPage />, roles: MODERATION_ROLES },
-  { path: "dictionaries", element: <DictionariesPage />, roles: MODERATION_ROLES },
-  { path: "plans", element: <PlansPage />, roles: ADMIN_ROLES },
+    { path: "categories", element: <CategoriesPage />, roles: ADMIN_ROLES },
+    { path: "place-types", element: <PlaceTypesPage />, roles: ADMIN_ROLES },
+    { path: "attributes", element: <AttributesPage />, roles: MODERATION_ROLES },
+    { path: "dictionaries", element: <DictionariesPage />, roles: MODERATION_ROLES },
+    { path: "plans", element: <PlansPage />, roles: ADMIN_ROLES },
 ];
 
 const paymentRoutes = [
-  { path: "payments", element: <PaymentsPage />, roles: ADMIN_ROLES },
-  { path: "payments/view/:paymentId", element: <PaymentPage />, roles: ADMIN_ROLES },
-  { path: "payments/:status", element: <PaymentsPage />, roles: ADMIN_ROLES },
+    { path: "payments", element: <PaymentsPage />, roles: ADMIN_ROLES },
+    { path: "payments/view/:paymentId", element: <PaymentPage />, roles: ADMIN_ROLES },
+    { path: "payments/:status", element: <PaymentsPage />, roles: ADMIN_ROLES },
 ];
 
 const serviceRoutes = [
-  { path: "mailings", element: <MailingsPage />, roles: MODERATION_ROLES },
-  { path: "statistics", element: <StatisticsPage />, roles: MODERATION_ROLES },
-  { path: "moderator-logs", element: <ModeratorLogsPage />, roles: ADMIN_ROLES },
-  { path: "settings", element: <SettingsPage />, roles: ADMIN_ROLES },
+    { path: "mailings", element: <MailingsPage />, roles: MODERATION_ROLES },
+    { path: "statistics", element: <StatisticsPage />, roles: MODERATION_ROLES },
+    { path: "moderator-logs", element: <ModeratorLogsPage />, roles: ADMIN_ROLES },
+    { path: "settings", element: <SettingsPage />, roles: ADMIN_ROLES },
 ];
 
 const adminRoutes = [
-  ...placeRoutes,
-  ...userRoutes,
-  ...reportRoutes,
-  ...reviewRoutes,
-  ...contentRoutes,
-  ...paymentRoutes,
-  ...serviceRoutes,
+    ...placeRoutes,
+    ...userRoutes,
+    ...reportRoutes,
+    ...reviewRoutes,
+    ...contentRoutes,
+    ...paymentRoutes,
+    ...serviceRoutes,
 ];
 
 function renderProtectedRoute(route) {
-  return (
-    <Route
-      key={route.path}
-      path={route.path}
-      element={
-        <RequireRole roles={route.roles}>
-          {route.element}
-        </RequireRole>
-      }
-    />
-  );
+    return (
+        <Route
+            key={route.path}
+            path={route.path}
+            element={
+                <RequireRole roles={route.roles}>
+                    {route.element}
+                </RequireRole>
+            }
+        />
+    );
 }
 
 export function App() {
-  return (
-    <Routes>
-      <Route element={<AdminLayout />}>
-        <Route index element={<DashboardPage />} />
+    return (
+        <Routes>
+            <Route path="/login" element={<LoginPage />} />
 
-        {adminRoutes.map(renderProtectedRoute)}
-      </Route>
+            <Route
+                element={
+                    <RequireAuth>
+                        <AdminLayout />
+                    </RequireAuth>
+                }
+            >
+                <Route index element={<DashboardPage />} />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
+                {adminRoutes.map(renderProtectedRoute)}
+            </Route>
+
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+    );
 }
