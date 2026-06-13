@@ -1,33 +1,58 @@
 import { useMemo } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { pageTitles } from "../config/navigation";
+
 import { Sidebar } from "../components/Sidebar/Sidebar";
 import { Topbar } from "../components/Topbar/Topbar";
+import { pageTitles } from "../config/navigation";
+import { useAdminAuth } from "../context/useAdminAuth";
 import { useTheme } from "../hooks/useTheme";
 
 export function AdminLayout() {
-  const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
+    const location = useLocation();
+    const { theme, toggleTheme } = useTheme();
+    const { user, logout } = useAdminAuth();
 
-  const pageTitle = useMemo(() => {
-    if (location.pathname.startsWith("/places")) {
-      return "Объявления";
-    }
+    const pageTitle = useMemo(() => {
+        if (location.pathname.startsWith("/places")) {
+            return "Объявления";
+        }
 
-    return pageTitles[location.pathname] || "Админка";
-  }, [location.pathname]);
+        if (location.pathname.startsWith("/users")) {
+            return "Пользователи";
+        }
 
-  return (
-    <div className="admin-shell">
-      <Sidebar />
+        if (location.pathname.startsWith("/reports")) {
+            return "Жалобы";
+        }
 
-      <main className="workspace">
-        <Topbar pageTitle={pageTitle} theme={theme} onToggleTheme={toggleTheme} />
+        if (location.pathname.startsWith("/reviews")) {
+            return "Отзывы";
+        }
 
-        <section className="content">
-          <Outlet />
-        </section>
-      </main>
-    </div>
-  );
+        if (location.pathname.startsWith("/payments")) {
+            return "Платежи";
+        }
+
+        return pageTitles[location.pathname] || "Админка";
+    }, [location.pathname]);
+
+    return (
+        <div className="admin-shell">
+            <Sidebar />
+
+            <main className="workspace">
+                <Topbar
+                    pageTitle={pageTitle}
+                    theme={theme}
+                    onToggleTheme={toggleTheme}
+                    user={user}
+                    onLogout={logout}
+                />
+
+                <section className="content">
+                    <Outlet />
+                </section>
+            </main>
+        </div>
+    );
 }

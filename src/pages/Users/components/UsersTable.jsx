@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+
 import { StatusBadge } from "../../../components/StatusBadge/StatusBadge";
 import { roleLabels } from "../../../config/roles";
 
@@ -37,16 +38,16 @@ export function UsersTable({ users }) {
                                 </div>
                             </td>
 
-                            <td>{user.email}</td>
+                            <td>{user.email || "—"}</td>
                             <td>{user.phone}</td>
-                            <td>{roleLabels[user.role] || user.role}</td>
+                            <td>{roleLabels[user.role_code] || user.role_title || "—"}</td>
 
                             <td>
                                 <StatusBadge status={user.status} />
                             </td>
 
-                            <td>{user.placesCount}</td>
-                            <td>{user.createdAt}</td>
+                            <td>{user.places_count}</td>
+                            <td>{user.created_at || "—"}</td>
 
                             <td>
                                 <Link

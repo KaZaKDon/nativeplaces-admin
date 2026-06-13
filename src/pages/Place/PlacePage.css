@@ -192,3 +192,10 @@
 .place-section__header h3 {
     margin: 0;
 }
+
+.place-gallery-empty {
+    padding: var(--space-lg);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-secondary);
+}

@@ -19,10 +19,10 @@ export function PaymentsTable({ payments }) {
                     <tr>
                         <th>Платёж</th>
                         <th>Пользователь</th>
-                        <th>Объявление</th>
                         <th>Тариф</th>
                         <th>Сумма</th>
                         <th>Статус</th>
+                        <th>Источник</th>
                         <th>Дата</th>
                         <th>Действия</th>
                     </tr>
@@ -39,35 +39,35 @@ export function PaymentsTable({ payments }) {
                             </td>
 
                             <td>
-                                <Link
-                                    className="table-inline-link"
-                                    to={`/users/view/${payment.userId}`}
-                                >
-                                    {payment.userName}
-                                </Link>
-                            </td>
-
-                            <td>
-                                <Link
-                                    className="table-inline-link"
-                                    to={`/places/view/${payment.placeId}`}
-                                >
-                                    {payment.placeTitle}
-                                </Link>
+                                {payment.userId ? (
+                                    <Link
+                                        className="table-inline-link"
+                                        to={`/users/view/${payment.userId}`}
+                                    >
+                                        {payment.userName}
+                                    </Link>
+                                ) : (
+                                    "—"
+                                )}
                             </td>
 
                             <td>{payment.planTitle}</td>
 
-                            <td>{payment.amount} ₽</td>
+                            <td>{payment.amount.toLocaleString("ru-RU")} ₽</td>
 
                             <td>
                                 <StatusBadge status={payment.status} />
                             </td>
 
-                            <td>{payment.createdAt}</td>
+                            <td>{payment.subscriptionSource || "—"}</td>
+
+                            <td>{payment.createdAt || "—"}</td>
 
                             <td>
-                                <Link className="table-action" to={`/payments/view/${payment.id}`}>
+                                <Link
+                                    className="table-action"
+                                    to={`/payments/view/${payment.id}`}
+                                >
                                     Открыть
                                 </Link>
                             </td>

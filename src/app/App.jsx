@@ -75,7 +75,7 @@ const paymentRoutes = [
 ];
 
 const serviceRoutes = [
-    { path: "mailings", element: <MailingsPage />, roles: MODERATION_ROLES },
+    { path: "mailings", element: <MailingsPage />, roles: ADMIN_ROLES },
     { path: "statistics", element: <StatisticsPage />, roles: MODERATION_ROLES },
     { path: "moderator-logs", element: <ModeratorLogsPage />, roles: ADMIN_ROLES },
     { path: "settings", element: <SettingsPage />, roles: ADMIN_ROLES },

@@ -93,7 +93,7 @@ export const navigationItems = [{
         path: "/mailings",
         icon: "✉️",
         badge: null,
-        roles: ["admin", "moderator"],
+        roles: ["admin"],
     },
     {
         id: "statistics",

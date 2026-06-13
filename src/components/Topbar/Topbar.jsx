@@ -1,4 +1,18 @@
-export function Topbar({ pageTitle, theme, onToggleTheme }) {
+const roleTitles = {
+    admin: "Администратор",
+    moderator: "Модератор",
+};
+
+export function Topbar({
+    pageTitle,
+    theme,
+    onToggleTheme,
+    user,
+    onLogout,
+}) {
+    const roleTitle = roleTitles[user?.role_code] || "Пользователь";
+    const userName = user?.name || user?.email || "Админка";
+
     return (
         <header className="topbar">
             <div>
@@ -12,9 +26,13 @@ export function Topbar({ pageTitle, theme, onToggleTheme }) {
                 </button>
 
                 <div className="admin-user">
-                    <span>Роль</span>
-                    <strong>Администратор</strong>
+                    <span>{roleTitle}</span>
+                    <strong>{userName}</strong>
                 </div>
+
+                <button className="theme-toggle" type="button" onClick={onLogout}>
+                    Выйти
+                </button>
             </div>
         </header>
     );

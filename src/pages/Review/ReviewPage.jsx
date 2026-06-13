@@ -1,34 +1,147 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 
-import { StatusBadge } from "../../components/StatusBadge/StatusBadge";
 import { BackButton } from "../../components/BackButton/BackButton";
-
-import { reviewsDemoData } from "../Reviews/data/reviewsDemoData";
 import { NotFoundState } from "../../components/NotFoundState/NotFoundState";
+import { StatusBadge } from "../../components/StatusBadge/StatusBadge";
+
+import { reviewsApi } from "../../shared/api/reviewsApi";
 
 import "./ReviewPage.css";
 
-function findDemoReviewById(reviewId) {
-    return reviewsDemoData.find((item) => String(item.id) === String(reviewId));
+function getUserName(review) {
+    return [review.user_first_name, review.user_last_name]
+        .filter(Boolean)
+        .join(" ") || review.user_email || "—";
+}
+
+function createInfo(review) {
+    return [
+        {
+            label: "ID",
+            value: `#${review.id}`,
+        },
+        {
+            label: "Дата",
+            value: review.created_at || "—",
+        },
+        {
+            label: "Модерация",
+            value: review.moderated_at || "—",
+        },
+        {
+            label: "Пользователь",
+            value: getUserName(review),
+        },
+    ];
 }
 
 export function ReviewPage() {
     const { reviewId } = useParams();
     const navigate = useNavigate();
 
-    const review = findDemoReviewById(reviewId);
+    const [review, setReview] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isActionLoading, setIsActionLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
-    function handleHide() {
-        alert("Демо: отзыв скрыт");
-        navigate("/reviews");
+    useEffect(() => {
+        let isMounted = true;
+
+        async function loadReview() {
+            try {
+                setIsLoading(true);
+                setErrorMessage("");
+
+                const data = await reviewsApi.getReview(reviewId);
+
+                if (isMounted) {
+                    setReview(data.review || null);
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setErrorMessage(error.message || "Не удалось загрузить отзыв");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        }
+
+        loadReview();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [reviewId]);
+
+    const info = useMemo(() => {
+        if (!review) {
+            return [];
+        }
+
+        return createInfo(review);
+    }, [review]);
+
+    async function handlePublish() {
+        try {
+            setIsActionLoading(true);
+            setErrorMessage("");
+
+            await reviewsApi.publishReview(review.id);
+
+            navigate("/reviews/published");
+        } catch (error) {
+            setErrorMessage(error.message || "Не удалось опубликовать отзыв");
+        } finally {
+            setIsActionLoading(false);
+        }
+    }
+
+    async function handleReject() {
+        try {
+            setIsActionLoading(true);
+            setErrorMessage("");
+
+            await reviewsApi.rejectReview(review.id);
+
+            navigate("/reviews/rejected");
+        } catch (error) {
+            setErrorMessage(error.message || "Не удалось отклонить отзыв");
+        } finally {
+            setIsActionLoading(false);
+        }
+    }
+
+    if (isLoading) {
+        return (
+            <section className="page">
+                <BackButton />
+
+                <div className="review-section">
+                    Загружаем отзыв...
+                </div>
+            </section>
+        );
+    }
+
+    if (errorMessage && !review) {
+        return (
+            <NotFoundState
+                eyebrow={`Отзыв #${reviewId}`}
+                title="Отзыв не найден"
+                description={errorMessage}
+            />
+        );
     }
 
     if (!review) {
         return (
             <NotFoundState
-                eyebrow={`Платёж #${reviewId}`}
-                title="Платёж не найден"
-                description="В демо-данных нет платежа с таким ID. Позже здесь будет обработка ответа API."
+                eyebrow={`Отзыв #${reviewId}`}
+                title="Отзыв не найден"
+                description="Отзыв отсутствует или был удалён."
             />
         );
     }
@@ -47,25 +160,35 @@ export function ReviewPage() {
                 <StatusBadge status={review.status} />
             </div>
 
+            {errorMessage ? (
+                <div className="review-section">
+                    {errorMessage}
+                </div>
+            ) : null}
+
             <div className="review-page-grid">
                 <div className="review-page-main">
                     <article className="review-section">
                         <h3>Текст отзыва</h3>
 
-                        <p>{review.text}</p>
+                        <p>{review.review_text || "Текст отзыва не заполнен."}</p>
                     </article>
 
                     <article className="review-section">
                         <h3>Связанные данные</h3>
 
                         <div className="review-links">
-                            <Link to={`/places/view/${review.placeId}`}>
-                                Объявление: {review.placeTitle}
-                            </Link>
+                            {review.place_id ? (
+                                <Link to={`/places/view/${review.place_id}`}>
+                                    Объявление: {review.place_title || `#${review.place_id}`}
+                                </Link>
+                            ) : null}
 
-                            <Link to={`/users/view/${review.userId}`}>
-                                Пользователь: {review.userName}
-                            </Link>
+                            {review.user_id ? (
+                                <Link to={`/users/view/${review.user_id}`}>
+                                    Пользователь: {getUserName(review)}
+                                </Link>
+                            ) : null}
                         </div>
                     </article>
                 </div>
@@ -75,20 +198,12 @@ export function ReviewPage() {
                         <h3>Информация</h3>
 
                         <div className="review-info-list">
-                            <div>
-                                <span>ID</span>
-                                <strong>#{review.id}</strong>
-                            </div>
-
-                            <div>
-                                <span>Оценка</span>
-                                <strong>{review.rating}/5</strong>
-                            </div>
-
-                            <div>
-                                <span>Дата</span>
-                                <strong>{review.createdAt}</strong>
-                            </div>
+                            {info.map((item) => (
+                                <div key={item.label}>
+                                    <span>{item.label}</span>
+                                    <strong>{item.value}</strong>
+                                </div>
+                            ))}
                         </div>
                     </article>
 
@@ -96,8 +211,20 @@ export function ReviewPage() {
                         <h3>Модерация</h3>
 
                         <div className="review-actions">
-                            <button type="button" onClick={handleHide}>
-                                Скрыть отзыв
+                            <button
+                                type="button"
+                                onClick={handlePublish}
+                                disabled={isActionLoading || review.status === "published"}
+                            >
+                                Опубликовать
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleReject}
+                                disabled={isActionLoading || review.status === "rejected"}
+                            >
+                                Отклонить
                             </button>
                         </div>
                     </article>

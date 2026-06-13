@@ -1,47 +1,117 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { ReportsStatusTabs } from "./components/ReportsStatusTabs";
 import { ReportsTable } from "./components/ReportsTable";
 
-import {
-  reportsDemoData,
-  reportStatusItems,
-} from "./data/reportsDemoData";
-
-import { filterReports } from "./utils/reportsFilters";
+import { reportsApi } from "../../shared/api/reportsApi";
 
 import "./ReportsPage.css";
 
+const STATUS_LABELS = {
+    all: "Все",
+    new: "Новые",
+    closed: "Закрытые",
+};
+
+const STATUS_VALUES = ["all", "new", "closed"];
+
+function mapReportFromApi(report) {
+    const userName = [report.user_first_name, report.user_last_name]
+        .filter(Boolean)
+        .join(" ");
+
+    return {
+        ...report,
+        title: report.place_title || "Жалоба",
+        type: report.report_type || "—",
+        placeTitle: report.place_title || "—",
+        userName: userName || report.user_email || "—",
+        createdAt: report.created_at || "—",
+    };
+}
+
 export function ReportsPage() {
-  const { status } = useParams();
+    const { status } = useParams();
 
-  const currentStatus = status || "all";
+    const currentStatus = status || "all";
 
-  const filteredReports = useMemo(() => {
-    return filterReports(reportsDemoData, currentStatus);
-  }, [currentStatus]);
+    const [reports, setReports] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
 
-  return (
-    <section className="page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Жалобы</p>
+    useEffect(() => {
+        let isMounted = true;
 
-          <h2>Обработка жалоб</h2>
+        async function loadReports() {
+            try {
+                setIsLoading(true);
+                setErrorMessage("");
 
-          <p>
-            Здесь модераторы рассматривают жалобы на объявления,
-            пользователей и отзывы.
-          </p>
-        </div>
+                const data = await reportsApi.getReports({
+                    status: currentStatus,
+                });
 
-        <span className="status-badge">Демо-данные</span>
-      </div>
+                const mappedReports = (data.reports || []).map(mapReportFromApi);
 
-      <ReportsStatusTabs items={reportStatusItems} />
+                if (isMounted) {
+                    setReports(mappedReports);
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setErrorMessage(error.message || "Не удалось загрузить жалобы");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        }
 
-      <ReportsTable reports={filteredReports} />
-    </section>
-  );
+        loadReports();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [currentStatus]);
+
+    const statusItems = useMemo(() => {
+        return STATUS_VALUES.map((itemStatus) => ({
+            value: itemStatus,
+            label: STATUS_LABELS[itemStatus],
+            count: itemStatus === currentStatus ? reports.length : 0,
+        }));
+    }, [currentStatus, reports.length]);
+
+    return (
+        <section className="page">
+            <div className="page-header">
+                <div>
+                    <p className="eyebrow">Жалобы</p>
+
+                    <h2>Обработка жалоб</h2>
+
+                    <p>
+                        Реальные жалобы пользователей на объявления.
+                    </p>
+                </div>
+            </div>
+
+            {errorMessage ? (
+                <div className="reports-empty">
+                    {errorMessage}
+                </div>
+            ) : null}
+
+            <ReportsStatusTabs items={statusItems} />
+
+            {isLoading ? (
+                <div className="reports-empty">
+                    Загружаем жалобы...
+                </div>
+            ) : (
+                <ReportsTable reports={reports} />
+            )}
+        </section>
+    );
 }

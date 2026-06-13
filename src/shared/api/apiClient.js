@@ -1,23 +1,22 @@
-const API_BASE_URL = "/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
-async function request(path, options = {}) {
-    const url = `${API_BASE_URL}${path}`;
+function buildUrl(path) {
+    if (path.startsWith("http://") || path.startsWith("https://")) {
+        return path;
+    }
 
-    const response = await fetch(url, {
-        credentials: "include",
-        headers: {
-            "Content-Type": "application/json",
-            ...(options.headers || {}),
-        },
-        ...options,
-    });
+    return `${API_BASE_URL}${path}`;
+}
 
+async function parseResponse(response, url) {
     const text = await response.text();
 
-    let data;
+    if (!text) {
+        return null;
+    }
 
     try {
-        data = JSON.parse(text);
+        return JSON.parse(text);
     } catch {
         console.error("API вернул не JSON:", {
             url,
@@ -27,12 +26,29 @@ async function request(path, options = {}) {
 
         throw new Error(`API вернул не JSON: ${url}`);
     }
+}
 
-    if (!response.ok || data.success === false) {
-        throw new Error(data.message || "Ошибка запроса к API");
+async function request(path, options = {}) {
+    const url = buildUrl(path);
+
+    const headers = {
+        ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+        ...(options.headers || {}),
+    };
+
+    const response = await fetch(url, {
+        credentials: "include",
+        ...options,
+        headers,
+    });
+
+    const data = await parseResponse(response, url);
+
+    if (!response.ok || data?.success === false) {
+        throw new Error(data?.message || "Ошибка запроса к API");
     }
 
-    return data.data;
+    return data?.data ?? data;
 }
 
 export const apiClient = {
@@ -40,10 +56,10 @@ export const apiClient = {
         return request(path);
     },
 
-    post(path, body) {
+    post(path, body = {}) {
         return request(path, {
             method: "POST",
-            body: JSON.stringify(body),
+            body: body instanceof FormData ? body : JSON.stringify(body),
         });
     },
 };

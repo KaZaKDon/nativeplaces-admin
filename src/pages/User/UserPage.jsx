@@ -1,69 +1,115 @@
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { StatusBadge } from "../../components/StatusBadge/StatusBadge";
-import { userDemoData } from "./data/userDemoData";
-import { UserInfoCard } from "./components/UserInfoCard";
-import { UserManagementCard } from "./components/UserManagementCard";
-import { CURRENT_USER } from "../../config/auth";
-import { UserPlaces } from "./components/UserPlaces";
-import { UserHistory } from "./components/UserHistory";
 import { BackButton } from "../../components/BackButton/BackButton";
 import { NotFoundState } from "../../components/NotFoundState/NotFoundState";
+import { StatusBadge } from "../../components/StatusBadge/StatusBadge";
+
+import { roleLabels } from "../../config/roles";
+import { usersApi } from "../../shared/api/usersApi";
+
+import { UserInfoCard } from "./components/UserInfoCard";
+import { UserPlaces } from "./components/UserPlaces";
+import { UserSubscriptionCard } from "./components/UserSubscriptionCard";
+import { UserSubscriptionsHistory } from "./components/UserSubscriptionsHistory";
 
 import "./UserPage.css";
 
-function findDemoUserById(userId) {
-    if (String(userDemoData.id) === String(userId)) {
-        return userDemoData;
-    }
-
-    return null;
+function getUserName(user) {
+    return [user.first_name, user.last_name].filter(Boolean).join(" ") || "Без имени";
 }
 
 function createMainInfo(user) {
     return [
-        {
-            label: "ID",
-            value: `#${user.id}`,
-        },
-        {
-            label: "Email",
-            value: user.email,
-        },
-        {
-            label: "Телефон",
-            value: user.phone,
-        },
-        {
-            label: "Роль",
-            value: user.role,
-        },
-        {
-            label: "Дата регистрации",
-            value: user.createdAt,
-        },
-        {
-            label: "Последний вход",
-            value: user.lastLoginAt,
-        },
+        { label: "ID", value: `#${user.id}` },
+        { label: "Email", value: user.email || "—" },
+        { label: "Телефон", value: user.phone || "—" },
+        { label: "Telegram", value: user.telegram || "—" },
+        { label: "Роль", value: roleLabels[user.role_code] || user.role_title || "—" },
+        { label: "Дата регистрации", value: user.created_at || "—" },
+        { label: "Обновлён", value: user.updated_at || "—" },
     ];
 }
 
 export function UserPage() {
     const { userId } = useParams();
-    const user = findDemoUserById(userId);
 
-    if (!user) {
+    const [user, setUser] = useState(null);
+    const [places, setPlaces] = useState([]);
+    const [subscription, setSubscription] = useState(null);
+    const [subscriptions, setSubscriptions] = useState([]);
+    const [reloadKey, setReloadKey] = useState(0);
+
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
+
+    useEffect(() => {
+        let isMounted = true;
+
+        async function loadUser() {
+            try {
+                setIsLoading(true);
+                setErrorMessage("");
+
+                const data = await usersApi.getUser(userId);
+
+                if (isMounted) {
+                    setUser(data.user || null);
+                    setPlaces(data.places || []);
+                    setSubscription(data.subscription || null);
+                    setSubscriptions(data.subscriptions || []);
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setErrorMessage(error.message || "Не удалось загрузить пользователя");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        }
+
+        loadUser();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [userId, reloadKey]);
+
+    const mainInfo = useMemo(() => {
+        if (!user) {
+            return [];
+        }
+
+        return createMainInfo(user);
+    }, [user]);
+
+    function refreshUser() {
+        setReloadKey((currentKey) => currentKey + 1);
+    }
+
+    if (isLoading) {
         return (
-            <NotFoundState
-                eyebrow={`Платёж #${userId}`}
-                title="Платёж не найден"
-                description="В демо-данных нет пользователя с таким ID. Позже здесь будет обработка ответа API."
-            />
+            <section className="page">
+                <BackButton />
+
+                <div className="user-section">
+                    Загружаем пользователя...
+                </div>
+            </section>
         );
     }
 
-    const mainInfo = createMainInfo(user);
+    if (errorMessage || !user) {
+        return (
+            <NotFoundState
+                eyebrow={`Пользователь #${userId}`}
+                title="Пользователь не найден"
+                description={errorMessage || "Пользователь отсутствует или был удалён."}
+            />
+        );
+    }
 
     return (
         <section className="page">
@@ -73,7 +119,7 @@ export function UserPage() {
                 <div>
                     <p className="eyebrow">Пользователь #{user.id}</p>
 
-                    <h2>{user.name}</h2>
+                    <h2>{getUserName(user)}</h2>
 
                     <p>Карточка пользователя Native Places.</p>
                 </div>
@@ -85,9 +131,7 @@ export function UserPage() {
                 <div className="user-page-main">
                     <UserInfoCard title="Основная информация" items={mainInfo} />
 
-                    <UserPlaces places={user.places} />
-
-                    <UserHistory history={user.history} />
+                    <UserPlaces places={places} />
                 </div>
 
                 <aside className="user-page-aside">
@@ -97,22 +141,29 @@ export function UserPage() {
                         <div className="user-info-list">
                             <div>
                                 <span>Объявлений</span>
-                                <strong>{user.placesCount}</strong>
+                                <strong>{places.length}</strong>
                             </div>
 
                             <div>
-                                <span>Платежей</span>
-                                <strong>{user.paymentsCount}</strong>
+                                <span>Роль</span>
+                                <strong>
+                                    {roleLabels[user.role_code] || user.role_title || "—"}
+                                </strong>
                             </div>
 
                             <div>
-                                <span>Жалоб</span>
-                                <strong>{user.reportsCount}</strong>
+                                <span>Статус</span>
+                                <strong>{user.status}</strong>
                             </div>
                         </div>
                     </article>
 
-                    {CURRENT_USER.role === "admin" && <UserManagementCard />}
+                    <UserSubscriptionCard
+                        userId={user.id}
+                        subscription={subscription}
+                        onUpdated={refreshUser}
+                    />
+                    <UserSubscriptionsHistory subscriptions={subscriptions} />
                 </aside>
             </div>
         </section>

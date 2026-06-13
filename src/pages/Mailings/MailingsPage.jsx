@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { mailingsApi } from "../../shared/api/mailingsApi";
 
@@ -11,13 +11,16 @@ export function MailingsPage() {
     const [options, setOptions] = useState(null);
     const [mailings, setMailings] = useState([]);
 
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [isLoaded, setIsLoaded] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
-    async function loadData() {
+    const loadData = useCallback(async ({ silent = false } = {}) => {
         try {
-            setIsLoading(true);
+            if (!silent) {
+                setIsLoading(true);
+            }
+
             setErrorMessage("");
 
             const [optionsData, mailingsData] = await Promise.all([
@@ -35,7 +38,15 @@ export function MailingsPage() {
         } finally {
             setIsLoading(false);
         }
-    }
+    }, []);
+
+    useEffect(() => {
+        async function init() {
+            await loadData({ silent: true });
+        }
+
+        init();
+    }, [loadData]);
 
     async function handleCreated() {
         await loadData();
@@ -56,12 +67,11 @@ export function MailingsPage() {
 
             await mailingsApi.deleteMailing(mailing.id);
 
-            await loadData();
+            await loadData({ silent: true });
         } catch (error) {
             setErrorMessage(
                 error.message || "Не удалось удалить рассылку"
             );
-        } finally {
             setIsLoading(false);
         }
     }
@@ -82,10 +92,10 @@ export function MailingsPage() {
                 <button
                     className="mailings-load-button"
                     type="button"
-                    onClick={loadData}
+                    onClick={() => loadData()}
                     disabled={isLoading}
                 >
-                    {isLoading ? "Загружаем..." : "Загрузить рассылки"}
+                    {isLoading ? "Обновляем..." : "Обновить"}
                 </button>
             </div>
 
@@ -105,6 +115,14 @@ export function MailingsPage() {
             {isLoaded ? (
                 <MailingsTable
                     mailings={mailings}
+                    isLoading={isLoading}
+                    onDelete={handleDelete}
+                />
+            ) : null}
+
+            {!isLoaded && isLoading ? (
+                <MailingsTable
+                    mailings={[]}
                     isLoading={isLoading}
                     onDelete={handleDelete}
                 />

@@ -250,6 +250,21 @@
     color: var(--color-primary);
 }
 
+.attributes-filter {
+    margin-bottom: var(--space-xl);
+}
+
+.attributes-filter select {
+    min-width: 280px;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+}
+
 @media (max-width: 1180px) {
     .attributes-stats {
         grid-template-columns: repeat(3, minmax(0, 1fr));

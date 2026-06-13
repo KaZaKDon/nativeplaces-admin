@@ -1,17 +1,91 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ModeratorLogsFilters } from "./components/ModeratorLogsFilters";
 import { ModeratorLogsSummary } from "./components/ModeratorLogsSummary";
 import { ModeratorLogsTable } from "./components/ModeratorLogsTable";
-import {
-    actionFilterItems,
-    moderatorFilterItems,
-    moderatorLogsDemoData,
-    periodFilterItems,
-    sectionFilterItems,
-} from "./data/moderatorLogsDemoData";
+
+import { moderatorLogsApi } from "../../shared/api/moderatorLogsApi";
 
 import "./ModeratorLogsPage.css";
+
+const sectionFilterItems = [
+    { value: "all", title: "Все разделы" },
+    { value: "place", title: "Объявления" },
+    { value: "review", title: "Отзывы" },
+    { value: "report", title: "Жалобы" },
+    { value: "user", title: "Пользователи" },
+];
+
+const actionFilterItems = [
+    { value: "all", title: "Все действия" },
+    { value: "publish", title: "Публикация" },
+    { value: "reject", title: "Отклонение" },
+    { value: "archive", title: "Архивирование" },
+    { value: "close", title: "Закрытие" },
+    { value: "update_role", title: "Изменение роли" },
+    { value: "update_status", title: "Изменение статуса" },
+];
+
+const periodFilterItems = [
+    { value: "all", title: "Все время" },
+    { value: "today", title: "Сегодня" },
+    { value: "week", title: "7 дней" },
+    { value: "month", title: "30 дней" },
+];
+
+const sectionLabels = {
+    place: "Объявления",
+    review: "Отзывы",
+    report: "Жалобы",
+    user: "Пользователи",
+};
+
+const actionLabels = {
+    publish: "Публикация",
+    reject: "Отклонение",
+    archive: "Архивирование",
+    close: "Закрытие",
+    update_role: "Изменение роли",
+    update_status: "Изменение статуса",
+};
+
+function getModeratorName(log) {
+    return [log.moderator_first_name, log.moderator_last_name]
+        .filter(Boolean)
+        .join(" ") || log.moderator_email || `Модератор #${log.moderator_id}`;
+}
+
+function getPeriodCode(createdAt) {
+    if (!createdAt) {
+        return "all";
+    }
+
+    const createdDate = new Date(createdAt.replace(" ", "T"));
+    const now = new Date();
+
+    if (Number.isNaN(createdDate.getTime())) {
+        return "all";
+    }
+
+    const diffMs = now.getTime() - createdDate.getTime();
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+    const sameDate = createdDate.toDateString() === now.toDateString();
+
+    if (sameDate) {
+        return "today";
+    }
+
+    if (diffDays <= 7) {
+        return "week";
+    }
+
+    if (diffDays <= 30) {
+        return "month";
+    }
+
+    return "all";
+}
 
 function isLogInPeriod(log, period) {
     if (period === "all") {
@@ -33,7 +107,45 @@ function isLogInPeriod(log, period) {
     return true;
 }
 
+function mapLogFromApi(log) {
+    return {
+        ...log,
+        id: Number(log.id),
+        moderatorId: String(log.moderator_id),
+        moderatorName: getModeratorName(log),
+        actionCode: log.action_type,
+        actionTitle: actionLabels[log.action_type] || log.action_type,
+        sectionCode: log.entity_type,
+        sectionTitle: sectionLabels[log.entity_type] || log.entity_type,
+        targetTitle: log.description || `${log.entity_type} #${log.entity_id}`,
+        createdAt: log.created_at || "—",
+        period: getPeriodCode(log.created_at),
+    };
+}
+
+function buildModeratorFilterItems(logs) {
+    const moderators = logs.reduce((items, log) => {
+        if (items.some((item) => item.value === log.moderatorId)) {
+            return items;
+        }
+
+        return [
+            ...items,
+            {
+                value: log.moderatorId,
+                title: log.moderatorName,
+            },
+        ];
+    }, []);
+
+    return [
+        { value: "all", title: "Все модераторы" },
+        ...moderators,
+    ];
+}
+
 export function ModeratorLogsPage() {
+    const [logs, setLogs] = useState([]);
     const [filters, setFilters] = useState({
         moderator: "all",
         section: "all",
@@ -41,8 +153,46 @@ export function ModeratorLogsPage() {
         period: "all",
     });
 
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
+
+    useEffect(() => {
+        let isMounted = true;
+
+        async function loadLogs() {
+            try {
+                setIsLoading(true);
+                setErrorMessage("");
+
+                const data = await moderatorLogsApi.getLogs();
+
+                if (isMounted) {
+                    setLogs((data.logs || []).map(mapLogFromApi));
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setErrorMessage(error.message || "Не удалось загрузить логи модераторов");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        }
+
+        loadLogs();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const moderatorFilterItems = useMemo(() => (
+        buildModeratorFilterItems(logs)
+    ), [logs]);
+
     const filteredLogs = useMemo(() => (
-        moderatorLogsDemoData.filter((log) => {
+        logs.filter((log) => {
             const moderatorMatch = (
                 filters.moderator === "all" || log.moderatorId === filters.moderator
             );
@@ -59,14 +209,14 @@ export function ModeratorLogsPage() {
 
             return moderatorMatch && sectionMatch && actionMatch && periodMatch;
         })
-    ), [filters]);
+    ), [filters, logs]);
 
     const summary = useMemo(() => ({
         total: filteredLogs.length,
         today: filteredLogs.filter((log) => log.period === "today").length,
-        places: filteredLogs.filter((log) => log.sectionCode === "places").length,
+        places: filteredLogs.filter((log) => log.sectionCode === "place").length,
         reportsAndReviews: filteredLogs.filter((log) => (
-            log.sectionCode === "reports" || log.sectionCode === "reviews"
+            log.sectionCode === "report" || log.sectionCode === "review"
         )).length,
     }), [filteredLogs]);
 
@@ -91,15 +241,21 @@ export function ModeratorLogsPage() {
             <div className="page-header">
                 <div>
                     <p className="eyebrow">Логи модераторов</p>
+
                     <h2>Журнал действий модерации</h2>
+
                     <p>
                         История действий администраторов и модераторов: публикации,
-                        отклонения, жалобы, отзывы, платежи и пользователи.
+                        отклонения, жалобы, отзывы и пользователи.
                     </p>
                 </div>
-
-                <span className="status-badge">Демо-данные</span>
             </div>
+
+            {errorMessage ? (
+                <div className="moderator-logs-empty">
+                    {errorMessage}
+                </div>
+            ) : null}
 
             <ModeratorLogsFilters
                 filters={filters}
@@ -113,7 +269,13 @@ export function ModeratorLogsPage() {
 
             <ModeratorLogsSummary summary={summary} />
 
-            <ModeratorLogsTable logs={filteredLogs} />
+            {isLoading ? (
+                <div className="moderator-logs-empty">
+                    Загружаем логи...
+                </div>
+            ) : (
+                <ModeratorLogsTable logs={filteredLogs} />
+            )}
         </section>
     );
 }

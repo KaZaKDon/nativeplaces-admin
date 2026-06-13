@@ -1,47 +1,121 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { UsersStatusTabs } from "./components/UsersStatusTabs";
 import { UsersTable } from "./components/UsersTable";
 
-import {
-  usersDemoData,
-  userStatusItems,
-} from "./data/usersDemoData";
+import { usersApi } from "../../shared/api/usersApi";
 
-import { filterUsers } from "./utils/usersFilters";
+import { filterUsers, mapUserFromApi } from "./utils/usersFilters";
 
 import "./UsersPage.css";
 
 export function UsersPage() {
-  const { status } = useParams();
+    const { status } = useParams();
 
-  const currentStatus = status || "all";
+    const currentStatus = status || "all";
 
-  const filteredUsers = useMemo(() => {
-    return filterUsers(usersDemoData, currentStatus);
-  }, [currentStatus]);
+    const [users, setUsers] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
 
-  return (
-    <section className="page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Пользователи</p>
+    useEffect(() => {
+        let isMounted = true;
 
-          <h2>Управление пользователями</h2>
+        async function loadUsers() {
+            try {
+                setIsLoading(true);
+                setErrorMessage("");
 
-          <p>
-            Здесь будет список пользователей, роли, блокировки,
-            история действий, объявления и платежи пользователя.
-          </p>
-        </div>
+                const data = await usersApi.getUsers();
+                const mappedUsers = (data.users || []).map(mapUserFromApi);
 
-        <span className="status-badge">Демо-данные</span>
-      </div>
+                if (isMounted) {
+                    setUsers(mappedUsers);
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setErrorMessage(error.message || "Не удалось загрузить пользователей");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        }
 
-      <UsersStatusTabs items={userStatusItems} />
+        loadUsers();
 
-      <UsersTable users={filteredUsers} />
-    </section>
-  );
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const statusItems = useMemo(() => {
+        return [
+            {
+                value: "all",
+                label: "Все",
+                count: users.length,
+            },
+            {
+                value: "active",
+                label: "Активные",
+                count: users.filter((user) => user.status === "active").length,
+            },
+            {
+                value: "blocked",
+                label: "Заблокированные",
+                count: users.filter((user) => user.status === "blocked").length,
+            },
+            {
+                value: "moderator",
+                label: "Модераторы",
+                count: users.filter((user) => user.role_code === "moderator").length,
+            },
+            {
+                value: "admin",
+                label: "Администраторы",
+                count: users.filter((user) => user.role_code === "admin").length,
+            },
+        ];
+    }, [users]);
+
+    const filteredUsers = useMemo(() => {
+        return filterUsers(users, currentStatus);
+    }, [users, currentStatus]);
+
+    return (
+        <section className="page">
+            <div className="page-header">
+                <div>
+                    <p className="eyebrow">Пользователи</p>
+
+                    <h2>Управление пользователями</h2>
+
+                    <p>
+                        Реальные пользователи, роли, статусы и количество объявлений.
+                    </p>
+                </div>
+            </div>
+
+            {errorMessage ? (
+                <div className="users-empty">
+                    {errorMessage}
+                </div>
+            ) : null}
+
+            {isLoading ? (
+                <div className="users-empty">
+                    Загружаем пользователей...
+                </div>
+            ) : (
+                <>
+                    <UsersStatusTabs items={statusItems} />
+
+                    <UsersTable users={filteredUsers} />
+                </>
+            )}
+        </section>
+    );
 }

@@ -1,22 +1,44 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { DictionaryGroupForm } from "./components/DictionaryGroupForm";
 import { DictionaryGroupsTable } from "./components/DictionaryGroupsTable";
 import { DictionaryValueForm } from "./components/DictionaryValueForm";
 import { DictionaryValuesTable } from "./components/DictionaryValuesTable";
-import {
-    dictionaryGroupsDemoData,
-    dictionaryValuesDemoData,
-    emptyDictionaryGroupForm,
-    emptyDictionaryValueForm,
-} from "./data/dictionariesDemoData";
+
+import { dictionariesApi } from "../../shared/api/dictionariesApi";
 
 import "./DictionariesPage.css";
 
+const emptyDictionaryGroupForm = {
+    title: "",
+    code: "",
+};
+
+const emptyDictionaryValueForm = {
+    title: "",
+};
+
+function mapGroupFromApi(group) {
+    return {
+        ...group,
+        id: Number(group.id),
+        usedInAttributes: [],
+        valuesCount: Number(group.values_count || 0),
+    };
+}
+
+function mapValueFromApi(value) {
+    return {
+        ...value,
+        id: Number(value.id),
+        groupId: Number(value.group_id),
+    };
+}
+
 export function DictionariesPage() {
-    const [groups, setGroups] = useState(dictionaryGroupsDemoData);
-    const [values, setValues] = useState(dictionaryValuesDemoData);
-    const [selectedGroupId, setSelectedGroupId] = useState(groups[0]?.id ?? null);
+    const [groups, setGroups] = useState([]);
+    const [values, setValues] = useState([]);
+    const [selectedGroupId, setSelectedGroupId] = useState(null);
 
     const [groupForm, setGroupForm] = useState(emptyDictionaryGroupForm);
     const [valueForm, setValueForm] = useState(emptyDictionaryValueForm);
@@ -24,19 +46,64 @@ export function DictionariesPage() {
     const [editingGroupId, setEditingGroupId] = useState(null);
     const [editingValueId, setEditingValueId] = useState(null);
 
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
+
     const isEditingGroup = editingGroupId !== null;
     const isEditingValue = editingValueId !== null;
 
-    const groupsWithCounters = useMemo(() => (
-        groups.map((group) => ({
+    useEffect(() => {
+        let isMounted = true;
+
+        async function loadData() {
+            try {
+                setIsLoading(true);
+                setErrorMessage("");
+
+                const data = await dictionariesApi.getData();
+
+                if (!isMounted) {
+                    return;
+                }
+
+                const mappedGroups = (data.groups || []).map(mapGroupFromApi);
+                const mappedValues = (data.values || []).map(mapValueFromApi);
+
+                setGroups(mappedGroups);
+                setValues(mappedValues);
+                setSelectedGroupId(mappedGroups[0]?.id ?? null);
+            } catch (error) {
+                if (isMounted) {
+                    setErrorMessage(error.message || "Не удалось загрузить справочники");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        }
+
+        loadData();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const groupsWithCounters = useMemo(() => {
+        return groups.map((group) => ({
             ...group,
             valuesCount: values.filter((value) => value.groupId === group.id).length,
-        }))
-    ), [groups, values]);
+        }));
+    }, [groups, values]);
 
-    const selectedGroup = groupsWithCounters.find((group) => group.id === selectedGroupId);
+    const selectedGroup = useMemo(() => {
+        return groupsWithCounters.find((group) => group.id === selectedGroupId) || null;
+    }, [groupsWithCounters, selectedGroupId]);
 
-    const selectedValues = values.filter((value) => value.groupId === selectedGroupId);
+    const selectedValues = useMemo(() => {
+        return values.filter((value) => value.groupId === selectedGroupId);
+    }, [values, selectedGroupId]);
 
     function handleGroupFormChange(field, value) {
         setGroupForm((currentForm) => ({
@@ -70,126 +137,109 @@ export function DictionariesPage() {
     function handleEditGroup(group) {
         setEditingGroupId(group.id);
         setGroupForm({
-            title: group.title,
-            code: group.code,
+            title: group.title || "",
+            code: group.code || "",
         });
     }
 
-    function handleDeleteGroup(group) {
-        if (group.usedInAttributes.length > 0) {
-            return;
-        }
-
-        setGroups((currentGroups) => (
-            currentGroups.filter((item) => item.id !== group.id)
-        ));
-
-        setValues((currentValues) => (
-            currentValues.filter((item) => item.groupId !== group.id)
-        ));
-
-        if (selectedGroupId === group.id) {
-            const nextGroup = groups.find((item) => item.id !== group.id);
-            setSelectedGroupId(nextGroup?.id ?? null);
-        }
-
-        if (editingGroupId === group.id) {
-            resetGroupForm();
-        }
+    function handleDeleteGroup() {
+        setErrorMessage("Удаление справочников подключим после backend endpoint.");
     }
 
     function handleEditValue(value) {
         setEditingValueId(value.id);
         setValueForm({
-            title: value.title,
+            title: value.title || "",
         });
     }
 
-    function handleDeleteValue(value) {
-        setValues((currentValues) => (
-            currentValues.filter((item) => item.id !== value.id)
-        ));
+    async function handleDeleteValue(value) {
+        try {
+            await dictionariesApi.deleteValue(value.id);
 
-        if (editingValueId === value.id) {
+            const data = await dictionariesApi.getData();
+
+            setGroups(
+                (data.groups || []).map(mapGroupFromApi)
+            );
+
+            setValues(
+                (data.values || []).map(mapValueFromApi)
+            );
+
             resetValueForm();
+        } catch (error) {
+            setErrorMessage(error.message);
         }
     }
 
-    function handleGroupSubmit(event) {
+    async function handleGroupSubmit(event) {
         event.preventDefault();
 
-        if (isEditingGroup) {
-            setGroups((currentGroups) => (
-                currentGroups.map((group) => {
-                    if (group.id !== editingGroupId) {
-                        return group;
-                    }
+        try {
+            if (isEditingGroup) {
+                await dictionariesApi.updateGroup({
+                    id: editingGroupId,
+                    title: groupForm.title,
+                    code: groupForm.code,
+                });
+            } else {
+                await dictionariesApi.createGroup({
+                    title: groupForm.title,
+                    code: groupForm.code,
+                });
+            }
 
-                    return {
-                        ...group,
-                        title: groupForm.title,
-                        code: groupForm.code,
-                    };
-                })
-            ));
+            const data = await dictionariesApi.getData();
+
+            setGroups(
+                (data.groups || []).map(mapGroupFromApi)
+            );
+
+            setValues(
+                (data.values || []).map(mapValueFromApi)
+            );
 
             resetGroupForm();
-            return;
+        } catch (error) {
+            setErrorMessage(error.message);
         }
-
-        const nextId = Math.max(0, ...groups.map((group) => group.id)) + 1;
-
-        setGroups((currentGroups) => ([
-            ...currentGroups,
-            {
-                id: nextId,
-                title: groupForm.title,
-                code: groupForm.code,
-                usedInAttributes: [],
-            },
-        ]));
-
-        setSelectedGroupId(nextId);
-        resetGroupForm();
     }
 
-    function handleValueSubmit(event) {
+    async function handleValueSubmit(event) {
         event.preventDefault();
 
         if (!selectedGroupId) {
             return;
         }
 
-        if (isEditingValue) {
-            setValues((currentValues) => (
-                currentValues.map((value) => {
-                    if (value.id !== editingValueId) {
-                        return value;
-                    }
+        try {
+            if (isEditingValue) {
+                await dictionariesApi.updateValue({
+                    id: editingValueId,
+                    title: valueForm.title,
+                });
+            } else {
+                await dictionariesApi.createValue({
+                    group_id: selectedGroupId,
+                    title: valueForm.title,
+                });
+            }
 
-                    return {
-                        ...value,
-                        title: valueForm.title,
-                    };
-                })
-            ));
+            const data = await dictionariesApi.getData();
+
+            setGroups(
+                (data.groups || []).map(mapGroupFromApi)
+            );
+
+            setValues(
+                (data.values || []).map(mapValueFromApi)
+            );
 
             resetValueForm();
-            return;
+        } catch (error) {
+            setErrorMessage(error.message);
         }
-
-        const nextId = Math.max(0, ...values.map((value) => value.id)) + 1;
-
-        setValues((currentValues) => ([
-            ...currentValues,
-            {
-                id: nextId,
-                groupId: selectedGroupId,
-                title: valueForm.title,
-            },
-        ]));
-
-        resetValueForm();
     }
 
     return (
@@ -197,47 +247,61 @@ export function DictionariesPage() {
             <div className="page-header">
                 <div>
                     <p className="eyebrow">Справочники</p>
+
                     <h2>Группы и значения справочников</h2>
+
                     <p>
                         Справочники хранят повторяющиеся значения для характеристик:
                         виды рыб, виды охоты, услуги, материалы стен и другие списки.
                     </p>
                 </div>
-
-                <span className="status-badge">Демо-данные</span>
             </div>
 
-            <DictionaryGroupsTable
-                groups={groupsWithCounters}
-                selectedGroupId={selectedGroupId}
-                onOpen={handleOpenGroup}
-                onEdit={handleEditGroup}
-                onDelete={handleDeleteGroup}
-            />
+            {errorMessage ? (
+                <div className="dictionaries-empty">
+                    {errorMessage}
+                </div>
+            ) : null}
 
-            <DictionaryGroupForm
-                form={groupForm}
-                isEditing={isEditingGroup}
-                onChange={handleGroupFormChange}
-                onSubmit={handleGroupSubmit}
-                onCancel={resetGroupForm}
-            />
+            {isLoading ? (
+                <div className="dictionaries-empty">
+                    Загружаем справочники...
+                </div>
+            ) : (
+                <>
+                    <DictionaryGroupsTable
+                        groups={groupsWithCounters}
+                        selectedGroupId={selectedGroupId}
+                        onOpen={handleOpenGroup}
+                        onEdit={handleEditGroup}
+                        onDelete={handleDeleteGroup}
+                    />
 
-            <DictionaryValuesTable
-                selectedGroup={selectedGroup}
-                values={selectedValues}
-                onEdit={handleEditValue}
-                onDelete={handleDeleteValue}
-            />
+                    <DictionaryGroupForm
+                        form={groupForm}
+                        isEditing={isEditingGroup}
+                        onChange={handleGroupFormChange}
+                        onSubmit={handleGroupSubmit}
+                        onCancel={resetGroupForm}
+                    />
 
-            <DictionaryValueForm
-                selectedGroup={selectedGroup}
-                form={valueForm}
-                isEditing={isEditingValue}
-                onChange={handleValueFormChange}
-                onSubmit={handleValueSubmit}
-                onCancel={resetValueForm}
-            />
+                    <DictionaryValuesTable
+                        selectedGroup={selectedGroup}
+                        values={selectedValues}
+                        onEdit={handleEditValue}
+                        onDelete={handleDeleteValue}
+                    />
+
+                    <DictionaryValueForm
+                        selectedGroup={selectedGroup}
+                        form={valueForm}
+                        isEditing={isEditingValue}
+                        onChange={handleValueFormChange}
+                        onSubmit={handleValueSubmit}
+                        onCancel={resetValueForm}
+                    />
+                </>
+            )}
         </section>
     );
 }

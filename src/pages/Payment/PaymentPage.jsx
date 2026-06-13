@@ -1,38 +1,70 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 import { BackButton } from "../../components/BackButton/BackButton";
-import { StatusBadge } from "../../components/StatusBadge/StatusBadge";
-import { paymentsDemoData } from "../Payments/data/paymentsDemoData";
 import { NotFoundState } from "../../components/NotFoundState/NotFoundState";
+import { StatusBadge } from "../../components/StatusBadge/StatusBadge";
+
+import { paymentsApi } from "../../shared/api/paymentsApi";
 
 import "./PaymentPage.css";
 
-function findDemoPaymentById(paymentId) {
-    return paymentsDemoData.find((item) => String(item.id) === String(paymentId));
-}
-
 export function PaymentPage() {
     const { paymentId } = useParams();
-    const navigate = useNavigate();
 
-    const payment = findDemoPaymentById(paymentId);
+    const [payment, setPayment] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
 
-    function handleConfirm() {
-        alert("Демо: платёж подтверждён");
-        navigate("/payments");
+    useEffect(() => {
+        let isMounted = true;
+
+        async function fetchPayment() {
+            try {
+                setIsLoading(true);
+                setErrorMessage("");
+
+                const data = await paymentsApi.getPayment(paymentId);
+
+                if (isMounted) {
+                    setPayment(data);
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setErrorMessage(error.message || "Не удалось загрузить платёж");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        }
+
+        fetchPayment();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [paymentId]);
+
+    if (isLoading) {
+        return (
+            <section className="page">
+                <BackButton />
+
+                <div className="payment-section">
+                    Загружаем платёж...
+                </div>
+            </section>
+        );
     }
 
-    function handleReject() {
-        alert("Демо: платёж отклонён");
-        navigate("/payments");
-    }
-
-    if (!payment) {
+    if (errorMessage || !payment) {
         return (
             <NotFoundState
                 eyebrow={`Платёж #${paymentId}`}
                 title="Платёж не найден"
-                description="В демо-данных нет платежа с таким ID. Позже здесь будет обработка ответа API."
+                description={errorMessage || "Платёж отсутствует или был удалён."}
             />
         );
     }
@@ -45,10 +77,11 @@ export function PaymentPage() {
                 <div>
                     <p className="eyebrow">Платёж #{payment.id}</p>
 
-                    <h2>{payment.amount} ₽</h2>
+                    <h2>{payment.amount.toLocaleString("ru-RU")} ₽</h2>
 
                     <p>
-                        Тариф «{payment.planTitle}» для объявления «{payment.placeTitle}».
+                        Тариф «{payment.planTitle}» для пользователя{" "}
+                        {payment.userName}.
                     </p>
                 </div>
 
@@ -61,13 +94,11 @@ export function PaymentPage() {
                         <h3>Связанные данные</h3>
 
                         <div className="payment-links">
-                            <Link to={`/users/view/${payment.userId}`}>
-                                Пользователь: {payment.userName}
-                            </Link>
-
-                            <Link to={`/places/view/${payment.placeId}`}>
-                                Объявление: {payment.placeTitle}
-                            </Link>
+                            {payment.userId ? (
+                                <Link to={`/users/view/${payment.userId}`}>
+                                    Пользователь: {payment.userName}
+                                </Link>
+                            ) : null}
                         </div>
                     </article>
 
@@ -75,9 +106,9 @@ export function PaymentPage() {
                         <h3>Комментарий</h3>
 
                         <p>
-                            Здесь будет информация о ручной оплате, квитанции, назначении
-                            платежа или ответ платёжной системы после подключения
-                            онлайн-оплаты.
+                            Здесь будет информация о ручной оплате, квитанции,
+                            назначении платежа или ответ платёжной системы после
+                            подключения онлайн-оплаты.
                         </p>
                     </article>
                 </div>
@@ -99,27 +130,30 @@ export function PaymentPage() {
 
                             <div>
                                 <span>Сумма</span>
-                                <strong>{payment.amount} ₽</strong>
+                                <strong>
+                                    {payment.amount.toLocaleString("ru-RU")} ₽
+                                </strong>
                             </div>
 
                             <div>
-                                <span>Дата</span>
-                                <strong>{payment.createdAt}</strong>
+                                <span>Статус</span>
+                                <strong>{payment.status}</strong>
                             </div>
-                        </div>
-                    </article>
 
-                    <article className="payment-section">
-                        <h3>Управление платежом</h3>
+                            <div>
+                                <span>Источник подписки</span>
+                                <strong>{payment.subscriptionSource || "—"}</strong>
+                            </div>
 
-                        <div className="payment-actions">
-                            <button type="button" onClick={handleConfirm}>
-                                Подтвердить оплату
-                            </button>
+                            <div>
+                                <span>Создан</span>
+                                <strong>{payment.createdAt || "—"}</strong>
+                            </div>
 
-                            <button type="button" onClick={handleReject}>
-                                Отклонить оплату
-                            </button>
+                            <div>
+                                <span>Оплачен</span>
+                                <strong>{payment.paidAt || "—"}</strong>
+                            </div>
                         </div>
                     </article>
                 </aside>

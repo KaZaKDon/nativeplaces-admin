@@ -1,135 +1,212 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PlaceTypeForm } from "./components/PlaceTypeForm";
 import { PlaceTypesTable } from "./components/PlaceTypesTable";
-import {
-  categoriesForPlaceTypes,
-  emptyPlaceTypeForm,
-  placeTypesDemoData,
-} from "./data/placeTypesDemoData";
+
+import { placeTypesApi } from "../../shared/api/placeTypesApi";
 
 import "./PlaceTypesPage.css";
 
+const emptyPlaceTypeForm = {
+    categoryCode: "",
+    title: "",
+    code: "",
+};
+
+function mapTypeFromApi(type) {
+    return {
+        ...type,
+        categoryCode: type.category_code || "",
+        categoryTitle: type.category_title || "—",
+        placesCount: Number(type.places_count || 0),
+        isActive: Number(type.is_active) === 1,
+    };
+}
+
+function mapCategoryFromApi(category) {
+    return {
+        id: Number(category.id),
+        code: category.code,
+        title: category.title,
+    };
+}
+
 export function PlaceTypesPage() {
-  const [placeTypes, setPlaceTypes] = useState(placeTypesDemoData);
-  const [form, setForm] = useState(emptyPlaceTypeForm);
-  const [editingTypeId, setEditingTypeId] = useState(null);
+    const [placeTypes, setPlaceTypes] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [form, setForm] = useState(emptyPlaceTypeForm);
+    const [editingTypeId, setEditingTypeId] = useState(null);
 
-  const isEditing = editingTypeId !== null;
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
-  function handleFormChange(field, value) {
-    setForm((currentForm) => ({
-      ...currentForm,
-      [field]: value,
-    }));
-  }
+    const isEditing = editingTypeId !== null;
 
-  function resetForm() {
-    setForm(emptyPlaceTypeForm);
-    setEditingTypeId(null);
-  }
+    useEffect(() => {
+        let isMounted = true;
 
-  function handleEdit(type) {
-    setEditingTypeId(type.id);
-    setForm({
-      categoryCode: type.categoryCode,
-      title: type.title,
-      code: type.code,
-    });
-  }
+        async function loadInitialData() {
+            try {
+                setIsLoading(true);
+                setErrorMessage("");
 
-  function handleDelete(type) {
-    if (type.placesCount > 0) {
-      return;
+                const data = await placeTypesApi.getPlaceTypes();
+
+                if (isMounted) {
+                    setPlaceTypes((data.types || []).map(mapTypeFromApi));
+                    setCategories((data.categories || []).map(mapCategoryFromApi));
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setErrorMessage(error.message || "Не удалось загрузить типы объектов");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        }
+
+        loadInitialData();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    async function reloadData() {
+        const data = await placeTypesApi.getPlaceTypes();
+
+        setPlaceTypes((data.types || []).map(mapTypeFromApi));
+        setCategories((data.categories || []).map(mapCategoryFromApi));
     }
 
-    setPlaceTypes((currentTypes) => (
-      currentTypes.filter((item) => item.id !== type.id)
-    ));
-
-    if (editingTypeId === type.id) {
-      resetForm();
-    }
-  }
-
-  function handleSubmit(event) {
-    event.preventDefault();
-
-    const category = categoriesForPlaceTypes.find((item) => (
-      item.code === form.categoryCode
-    ));
-
-    if (!category) {
-      return;
+    function handleFormChange(field, value) {
+        setForm((currentForm) => ({
+            ...currentForm,
+            [field]: value,
+        }));
     }
 
-    if (isEditing) {
-      setPlaceTypes((currentTypes) => (
-        currentTypes.map((type) => {
-          if (type.id !== editingTypeId) {
-            return type;
-          }
-
-          return {
-            ...type,
-            categoryCode: form.categoryCode,
-            categoryTitle: category.title,
-            title: form.title,
-            code: form.code,
-          };
-        })
-      ));
-
-      resetForm();
-      return;
+    function resetForm() {
+        setForm(emptyPlaceTypeForm);
+        setEditingTypeId(null);
     }
 
-    const nextId = Math.max(0, ...placeTypes.map((type) => type.id)) + 1;
+    function handleEdit(type) {
+        setEditingTypeId(type.id);
 
-    setPlaceTypes((currentTypes) => ([
-      ...currentTypes,
-      {
-        id: nextId,
-        categoryCode: form.categoryCode,
-        categoryTitle: category.title,
-        title: form.title,
-        code: form.code,
-        placesCount: 0,
-      },
-    ]));
+        setForm({
+            categoryCode: type.categoryCode,
+            title: type.title || "",
+            code: type.code || "",
+        });
+    }
 
-    resetForm();
-  }
+    async function handleDelete(type) {
+        if (type.placesCount > 0) {
+            return;
+        }
 
-  return (
-    <section className="page place-types-page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Типы объектов</p>
-          <h2>Типы объектов внутри категорий</h2>
-          <p>
-            Управление подтипами объявлений. Тип объекта уточняет,
-            что именно пользователь размещает внутри выбранной категории.
-          </p>
-        </div>
+        try {
+            setIsSaving(true);
+            setErrorMessage("");
 
-        <span className="status-badge">Демо-данные</span>
-      </div>
+            await placeTypesApi.togglePlaceTypeActive(type.id, false);
 
-      <PlaceTypesTable
-        placeTypes={placeTypes}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+            if (editingTypeId === type.id) {
+                resetForm();
+            }
 
-      <PlaceTypeForm
-        categories={categoriesForPlaceTypes}
-        form={form}
-        isEditing={isEditing}
-        onChange={handleFormChange}
-        onSubmit={handleSubmit}
-        onCancel={resetForm}
-      />
-    </section>
-  );
+            await reloadData();
+        } catch (error) {
+            setErrorMessage(error.message || "Не удалось отключить тип объекта");
+        } finally {
+            setIsSaving(false);
+        }
+    }
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+
+        const category = categories.find((item) => item.code === form.categoryCode);
+
+        if (!category) {
+            setErrorMessage("Выберите категорию");
+            return;
+        }
+
+        try {
+            setIsSaving(true);
+            setErrorMessage("");
+
+            const payload = {
+                category_id: category.id,
+                title: form.title,
+                code: form.code,
+            };
+
+            if (isEditing) {
+                await placeTypesApi.updatePlaceType({
+                    id: editingTypeId,
+                    ...payload,
+                });
+            } else {
+                await placeTypesApi.createPlaceType(payload);
+            }
+
+            resetForm();
+            await reloadData();
+        } catch (error) {
+            setErrorMessage(error.message || "Не удалось сохранить тип объекта");
+        } finally {
+            setIsSaving(false);
+        }
+    }
+
+    return (
+        <section className="page place-types-page">
+            <div className="page-header">
+                <div>
+                    <p className="eyebrow">Типы объектов</p>
+
+                    <h2>Типы объектов внутри категорий</h2>
+
+                    <p>
+                        Управление подтипами объявлений. Тип объекта уточняет,
+                        что именно пользователь размещает внутри выбранной категории.
+                    </p>
+                </div>
+            </div>
+
+            {errorMessage ? (
+                <div className="place-types-empty">
+                    {errorMessage}
+                </div>
+            ) : null}
+
+            {isLoading ? (
+                <div className="place-types-empty">
+                    Загружаем типы объектов...
+                </div>
+            ) : (
+                <PlaceTypesTable
+                    placeTypes={placeTypes}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                />
+            )}
+
+            <PlaceTypeForm
+                categories={categories}
+                form={form}
+                isEditing={isEditing}
+                isSaving={isSaving}
+                onChange={handleFormChange}
+                onSubmit={handleSubmit}
+                onCancel={resetForm}
+            />
+        </section>
+    );
 }

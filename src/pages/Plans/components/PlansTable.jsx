@@ -66,56 +66,24 @@ export function PlansTable({ plans, statusItems, onEdit, onChangeStatus }) {
                                         type="button"
                                         onClick={() => onEdit(plan)}
                                     >
-                                        {plan.status === "archived" ? "Просмотр" : "Изменить"}
+                                        Изменить
                                     </button>
 
-                                    {plan.status === "active" && (
-                                        <>
-                                            <button
-                                                className="table-action"
-                                                type="button"
-                                                onClick={() => onChangeStatus(plan, "disabled")}
-                                            >
-                                                Отключить
-                                            </button>
-
-                                            <button
-                                                className="table-action table-action--danger"
-                                                type="button"
-                                                onClick={() => onChangeStatus(plan, "archived")}
-                                            >
-                                                Архивировать
-                                            </button>
-                                        </>
-                                    )}
-
-                                    {plan.status === "disabled" && (
-                                        <>
-                                            <button
-                                                className="table-action"
-                                                type="button"
-                                                onClick={() => onChangeStatus(plan, "active")}
-                                            >
-                                                Включить
-                                            </button>
-
-                                            <button
-                                                className="table-action table-action--danger"
-                                                type="button"
-                                                onClick={() => onChangeStatus(plan, "archived")}
-                                            >
-                                                Архивировать
-                                            </button>
-                                        </>
-                                    )}
-
-                                    {plan.status === "archived" && (
+                                    {plan.status === "active" ? (
+                                        <button
+                                            className="table-action"
+                                            type="button"
+                                            onClick={() => onChangeStatus(plan, "disabled")}
+                                        >
+                                            Отключить
+                                        </button>
+                                    ) : (
                                         <button
                                             className="table-action"
                                             type="button"
                                             onClick={() => onChangeStatus(plan, "active")}
                                         >
-                                            Восстановить
+                                            Включить
                                         </button>
                                     )}
                                 </div>

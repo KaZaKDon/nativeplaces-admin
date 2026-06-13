@@ -1,13 +1,17 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
+import { EmptyState } from "../../components/EmptyState/EmptyState";
 import { useAdminAuth } from "../../context/useAdminAuth";
 
 import "./LoginPage.css";
 
 export function LoginPage() {
+    const location = useLocation();
+
     const {
         isAuthenticated,
+        isLoading: isAuthLoading,
         loginAdmin,
         loginCode,
     } = useAdminAuth();
@@ -22,8 +26,20 @@ export function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
+    const redirectTo = location.state?.from?.pathname || "/";
+
+    if (isAuthLoading) {
+        return (
+            <section className="login-page">
+                <EmptyState>
+                    Проверяем доступ к админке...
+                </EmptyState>
+            </section>
+        );
+    }
+
     if (isAuthenticated) {
-        return <Navigate to="/" replace />;
+        return <Navigate to={redirectTo} replace />;
     }
 
     async function handleAdminSubmit(event) {

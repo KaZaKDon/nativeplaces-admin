@@ -1,42 +1,49 @@
-import { useState } from "react";
 
-export function PlaceGallery({ images }) {
-    const [activeImage, setActiveImage] = useState(images[0]);
+function getImageSrc(image) {
+    if (!image) {
+        return "";
+    }
+
+    return image.src || image.url || image.image_path || "";
+}
+
+export function PlaceGallery({ images = [] }) {
+    const normalizedImages = images
+        .map((image) => ({
+            ...image,
+            src: getImageSrc(image),
+        }))
+        .filter((image) => image.src);
+
+    if (!normalizedImages.length) {
+        return (
+            <div className="place-gallery-empty">
+                Фотографии не загружены.
+            </div>
+        );
+    }
+
+    const mainImage = normalizedImages[0];
 
     return (
-        <div className="place-gallery-block">
-            <div className="place-gallery-main">
-                <img
-                    src={activeImage.src}
-                    alt={activeImage.alt}
-                />
+        <div className="place-gallery">
+            <img
+                className="place-gallery__main"
+                src={mainImage.src}
+                alt="Фотография объявления"
+            />
 
-                {activeImage.isCover && (
-                    <span className="place-gallery-cover">
-                        Обложка
-                    </span>
-                )}
-            </div>
-
-            <div className="place-gallery-thumbs">
-                {images.map((image) => (
-                    <button
-                        key={image.id}
-                        type="button"
-                        className={
-                            image.id === activeImage.id
-                                ? "place-gallery-thumb place-gallery-thumb--active"
-                                : "place-gallery-thumb"
-                        }
-                        onClick={() => setActiveImage(image)}
-                    >
+            {normalizedImages.length > 1 ? (
+                <div className="place-gallery__thumbs">
+                    {normalizedImages.slice(1).map((image) => (
                         <img
+                            key={image.id || image.src}
                             src={image.src}
-                            alt={image.alt}
+                            alt="Фотография объявления"
                         />
-                    </button>
-                ))}
-            </div>
+                    ))}
+                </div>
+            ) : null}
         </div>
     );
 }

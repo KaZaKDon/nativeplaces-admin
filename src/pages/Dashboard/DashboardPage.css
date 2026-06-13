@@ -4,6 +4,18 @@
     gap: var(--space-xl);
 }
 
+.dashboard-message {
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: var(--color-surface);
+    color: var(--color-muted);
+    box-shadow: var(--shadow-soft);
+}
+
+.dashboard-message--error {
+    color: var(--color-danger);
+}
+
 @media (max-width: 980px) {
     .dashboard-columns {
         grid-template-columns: 1fr;

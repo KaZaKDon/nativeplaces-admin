@@ -1,26 +1,25 @@
-export function getPlaceCategories(places) {
-    return Array.from(new Set(places.map((place) => place.category)));
+export function mapPlaceFromApi(place) {
+    const ownerName = [place.owner_first_name, place.owner_last_name]
+        .filter(Boolean)
+        .join(" ");
+
+    return {
+        ...place,
+        category: place.category_title || "—",
+        type: place.type_title || "—",
+        owner: ownerName || place.owner_email || "—",
+        createdAt: place.created_at || "—",
+    };
 }
 
-export function filterPlaces(places, filters) {
-    const {
-        status,
-        search,
-        category
-    } = filters;
-    const normalizedSearch = search.trim().toLowerCase();
+export function getPlaceCategories(places) {
+    const categories = places.reduce((items, place) => {
+        if (!place.category_title || items.includes(place.category_title)) {
+            return items;
+        }
 
-    return places.filter((place) => {
-        const matchesStatus = status === "all" || place.status === status;
-        const matchesCategory = category === "all" || place.category === category;
+        return [...items, place.category_title];
+    }, []);
 
-        const matchesSearch =
-            normalizedSearch === "" ||
-            place.title.toLowerCase().includes(normalizedSearch) ||
-            place.owner.toLowerCase().includes(normalizedSearch) ||
-            place.category.toLowerCase().includes(normalizedSearch) ||
-            place.type.toLowerCase().includes(normalizedSearch);
-
-        return matchesStatus && matchesCategory && matchesSearch;
-    });
+    return ["all", ...categories];
 }
