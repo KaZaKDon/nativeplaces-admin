@@ -12,4 +12,17 @@ export const usersApi = {
     updateSubscription(payload) {
         return apiClient.post("/admin/users/update-subscription.php", payload);
     },
+
+    makeModerator(userId) {
+        return apiClient.post("/admin/users/make-moderator.php", {
+            user_id: userId,
+        });
+    },
+
+    generateModeratorCode(userId, expiresDays = 30) {
+        return apiClient.post("/admin/users/generate-moderator-code.php", {
+            user_id: userId,
+            expires_days: expiresDays,
+        });
+    },
 };

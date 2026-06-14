@@ -12,7 +12,7 @@ export const navigationItems = [{
         label: "Объявления",
         path: "/places",
         icon: "📍",
-        badge: 18,
+        badge: null,
         roles: ["admin", "moderator"],
     },
     {
@@ -28,7 +28,7 @@ export const navigationItems = [{
         label: "Жалобы",
         path: "/reports",
         icon: "🚩",
-        badge: 4,
+        badge: null,
         roles: ["admin", "moderator"],
     },
     {
@@ -36,7 +36,7 @@ export const navigationItems = [{
         label: "Отзывы",
         path: "/reviews",
         icon: "⭐",
-        badge: 7,
+        badge: null,
         roles: ["admin", "moderator"],
     },
     {
@@ -84,7 +84,7 @@ export const navigationItems = [{
         label: "Платежи",
         path: "/payments",
         icon: "💳",
-        badge: 2,
+        badge: null,
         roles: ["admin"],
     },
     {

@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 import { RequireAuth } from "../components/RequireAuth/RequireAuth.jsx";
 import { RequireRole } from "../components/RequireRole/RequireRole.jsx";
@@ -32,6 +32,7 @@ import { MailingsPage } from "../pages/Mailings/MailingsPage.jsx";
 import { StatisticsPage } from "../pages/Statistics/StatisticsPage.jsx";
 import { ModeratorLogsPage } from "../pages/ModeratorLogs/ModeratorLogsPage.jsx";
 import { SettingsPage } from "../pages/Settings/SettingsPage.jsx";
+import { NotFoundPage } from "../pages/NotFound/NotFoundPage.jsx";
 
 const ADMIN_ROLES = ["admin"];
 const MODERATION_ROLES = ["admin", "moderator"];
@@ -122,7 +123,7 @@ export function App() {
                 {adminRoutes.map(renderProtectedRoute)}
             </Route>
 
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
         </Routes>
     );
 }

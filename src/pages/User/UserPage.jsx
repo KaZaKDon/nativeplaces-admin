@@ -12,6 +12,7 @@ import { UserInfoCard } from "./components/UserInfoCard";
 import { UserPlaces } from "./components/UserPlaces";
 import { UserSubscriptionCard } from "./components/UserSubscriptionCard";
 import { UserSubscriptionsHistory } from "./components/UserSubscriptionsHistory";
+import { UserManagementCard } from "./components/UserManagementCard";
 
 import "./UserPage.css";
 
@@ -157,6 +158,11 @@ export function UserPage() {
                             </div>
                         </div>
                     </article>
+
+                    <UserManagementCard
+                        user={user}
+                        onUpdated={refreshUser}
+                    />
 
                     <UserSubscriptionCard
                         userId={user.id}
