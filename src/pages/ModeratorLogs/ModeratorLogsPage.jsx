@@ -24,6 +24,7 @@ const actionFilterItems = [
     { value: "close", title: "Закрытие" },
     { value: "update_role", title: "Изменение роли" },
     { value: "update_status", title: "Изменение статуса" },
+    { value: "generate_moderator_code", title: "Код доступа модератора" },
 ];
 
 const periodFilterItems = [
@@ -47,12 +48,29 @@ const actionLabels = {
     close: "Закрытие",
     update_role: "Изменение роли",
     update_status: "Изменение статуса",
+    generate_moderator_code: "Код доступа модератора",
 };
 
 function getModeratorName(log) {
     return [log.moderator_first_name, log.moderator_last_name]
         .filter(Boolean)
-        .join(" ") || log.moderator_email || `Модератор #${log.moderator_id}`;
+        .join(" ") || log.moderator_email || `Сотрудник #${log.moderator_id}`;
+}
+
+function getStaffName(user) {
+    return [user.first_name, user.last_name].filter(Boolean).join(" ")
+        || user.email
+        || `Сотрудник #${user.id}`;
+}
+
+function buildStaffFilterItems(staff) {
+    return [
+        { value: "all", title: "Все сотрудники" },
+        ...staff.map((user) => ({
+            value: String(user.id),
+            title: getStaffName(user),
+        })),
+    ];
 }
 
 function getPeriodCode(createdAt) {
@@ -123,29 +141,10 @@ function mapLogFromApi(log) {
     };
 }
 
-function buildModeratorFilterItems(logs) {
-    const moderators = logs.reduce((items, log) => {
-        if (items.some((item) => item.value === log.moderatorId)) {
-            return items;
-        }
-
-        return [
-            ...items,
-            {
-                value: log.moderatorId,
-                title: log.moderatorName,
-            },
-        ];
-    }, []);
-
-    return [
-        { value: "all", title: "Все модераторы" },
-        ...moderators,
-    ];
-}
-
 export function ModeratorLogsPage() {
     const [logs, setLogs] = useState([]);
+    const [staff, setStaff] = useState([]);
+
     const [filters, setFilters] = useState({
         moderator: "all",
         section: "all",
@@ -168,6 +167,7 @@ export function ModeratorLogsPage() {
 
                 if (isMounted) {
                     setLogs((data.logs || []).map(mapLogFromApi));
+                    setStaff(data.staff || []);
                 }
             } catch (error) {
                 if (isMounted) {
@@ -188,8 +188,8 @@ export function ModeratorLogsPage() {
     }, []);
 
     const moderatorFilterItems = useMemo(() => (
-        buildModeratorFilterItems(logs)
-    ), [logs]);
+        buildStaffFilterItems(staff)
+    ), [staff]);
 
     const filteredLogs = useMemo(() => (
         logs.filter((log) => {

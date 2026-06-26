@@ -68,6 +68,7 @@ export function PlacePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [attributes, setAttributes] = useState([]);
 
     useEffect(() => {
         let isMounted = true;
@@ -82,6 +83,7 @@ export function PlacePage() {
                 if (isMounted) {
                     setPlace(data.place || null);
                     setImages(data.images || []);
+                    setAttributes(data.attributes || []);
                 }
             } catch (error) {
                 if (isMounted) {
@@ -105,6 +107,9 @@ export function PlacePage() {
     const ownerInfo = useMemo(() => (place ? createOwnerInfo(place) : []), [place]);
     const contactInfo = useMemo(() => (place ? createContactInfo(place) : []), [place]);
     const placementInfo = useMemo(() => (place ? createPlacementInfo(place) : []), [place]);
+    const attributesInfo = useMemo(() => (
+        createAttributesInfo(attributes)
+    ), [attributes]);
 
     async function handlePublish() {
         try {
@@ -162,6 +167,13 @@ export function PlacePage() {
         );
     }
 
+    function createAttributesInfo(attributesList) {
+        return attributesList.map((attribute) => ({
+            label: attribute.title || attribute.code || "Характеристика",
+            value: attribute.value || "—",
+        }));
+    }
+
     return (
         <section className="page">
             <BackButton fallbackTo="/places" />
@@ -184,22 +196,20 @@ export function PlacePage() {
                 </div>
             ) : null}
 
-            <div className="place-page-grid">
-                <div className="place-page-main">
-                    <article className="place-section">
-                        <h3>Описание</h3>
+            <div className="place-page-content">
+                <article className="place-section">
+                    <h3>Описание</h3>
 
-                        <p>{place.full_description || "Полное описание не заполнено."}</p>
-                    </article>
+                    <p>{place.full_description || "Полное описание не заполнено."}</p>
+                </article>
 
-                    <article className="place-section">
-                        <h3>Фотографии</h3>
+                <article className="place-section">
+                    <h3>Фотографии</h3>
 
-                        <PlaceGallery images={images} />
-                    </article>
-                </div>
+                    <PlaceGallery images={images} />
+                </article>
 
-                <aside className="place-page-aside">
+                <div className="place-info-grid">
                     <PlaceInfoCard title="Размещение" items={placementInfo} />
 
                     <PlaceInfoCard title="Основное" items={mainInfo} />
@@ -215,12 +225,17 @@ export function PlacePage() {
 
                     <PlaceInfoCard title="Контакты объявления" items={contactInfo} />
 
+                    <PlaceInfoCard
+                        title="Характеристики"
+                        items={attributesInfo}
+                    />
+
                     <PlaceModeration
                         onPublish={handlePublish}
                         onReject={handleReject}
                         isLoading={isActionLoading}
                     />
-                </aside>
+                </div>
             </div>
         </section>
     );

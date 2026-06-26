@@ -1,10 +1,25 @@
+const API_ORIGIN = "https://native-places.ru";
 
 function getImageSrc(image) {
     if (!image) {
         return "";
     }
 
-    return image.src || image.url || image.image_path || "";
+    const path = image.src || image.url || image.image_path || "";
+
+    if (!path) {
+        return "";
+    }
+
+    if (path.startsWith("http://") || path.startsWith("https://")) {
+        return path;
+    }
+
+    if (path.startsWith("/")) {
+        return `${API_ORIGIN}${path}`;
+    }
+
+    return `${API_ORIGIN}/${path}`;
 }
 
 export function PlaceGallery({ images = [] }) {

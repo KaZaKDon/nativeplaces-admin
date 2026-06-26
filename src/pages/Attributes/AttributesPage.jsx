@@ -4,6 +4,7 @@ import { AttributeForm } from "./components/AttributeForm";
 import { AttributesTable } from "./components/AttributesTable";
 
 import { attributesApi } from "../../shared/api/attributesApi";
+import { useAdminAuth } from "../../context/useAdminAuth";
 
 import "./AttributesPage.css";
 
@@ -45,6 +46,9 @@ function mapAttributeFromApi(attribute, fieldTypes) {
 }
 
 export function AttributesPage() {
+    const { role } = useAdminAuth();
+    const canManageAttributes = role === "admin";
+
     const [attributes, setAttributes] = useState([]);
     const [categories, setCategories] = useState([]);
     const [fieldTypes, setFieldTypes] = useState([]);
@@ -274,16 +278,18 @@ export function AttributesPage() {
                 </>
             )}
 
-            <AttributeForm
-                categories={categories}
-                fieldTypes={fieldTypes}
-                form={form}
-                isEditing={isEditing}
-                isSaving={isSaving}
-                onChange={handleFormChange}
-                onSubmit={handleSubmit}
-                onCancel={resetForm}
-            />
+            {canManageAttributes ? (
+                <AttributeForm
+                    categories={categories}
+                    fieldTypes={fieldTypes}
+                    form={form}
+                    isEditing={isEditing}
+                    isSaving={isSaving}
+                    onChange={handleFormChange}
+                    onSubmit={handleSubmit}
+                    onCancel={resetForm}
+                />
+            ) : null}
         </section>
     );
 }

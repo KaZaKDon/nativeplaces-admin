@@ -14,6 +14,7 @@ function buildBadges(data) {
     return {
         places: getSummaryValue(data.summary || [], "places"),
         reports: getSummaryValue(data.summary || [], "reports"),
+        appeals: Number(data.extra?.appeals_new || 0),
         reviews: Number(data.extra?.reviews_total || 0),
         payments: getSummaryValue(data.summary || [], "payments"),
     };

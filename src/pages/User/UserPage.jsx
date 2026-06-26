@@ -6,6 +6,7 @@ import { NotFoundState } from "../../components/NotFoundState/NotFoundState";
 import { StatusBadge } from "../../components/StatusBadge/StatusBadge";
 
 import { roleLabels } from "../../config/roles";
+import { useAdminAuth } from "../../context/useAdminAuth";
 import { usersApi } from "../../shared/api/usersApi";
 
 import { UserInfoCard } from "./components/UserInfoCard";
@@ -33,6 +34,9 @@ function createMainInfo(user) {
 }
 
 export function UserPage() {
+    const { role } = useAdminAuth();
+    const canManageUsers = role === "admin";
+
     const { userId } = useParams();
 
     const [user, setUser] = useState(null);
@@ -159,10 +163,12 @@ export function UserPage() {
                         </div>
                     </article>
 
-                    <UserManagementCard
-                        user={user}
-                        onUpdated={refreshUser}
-                    />
+                    {canManageUsers ? (
+                        <UserManagementCard
+                            user={user}
+                            onUpdated={refreshUser}
+                        />
+                    ) : null}
 
                     <UserSubscriptionCard
                         userId={user.id}

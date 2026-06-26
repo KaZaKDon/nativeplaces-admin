@@ -40,6 +40,14 @@ export const navigationItems = [{
         roles: ["admin", "moderator"],
     },
     {
+        id: "appeals",
+        label: "Обращения",
+        path: "/appeals",
+        icon: "📨",
+        badge: null,
+        roles: ["admin", "moderator"],
+    },
+    {
         id: "categories",
         label: "Категории",
         path: "/categories",

@@ -34,6 +34,9 @@ import { ModeratorLogsPage } from "../pages/ModeratorLogs/ModeratorLogsPage.jsx"
 import { SettingsPage } from "../pages/Settings/SettingsPage.jsx";
 import { NotFoundPage } from "../pages/NotFound/NotFoundPage.jsx";
 
+import { AppealsPage } from "../pages/Appeals/AppealsPage.jsx";
+import { AppealPage } from "../pages/Appeal/AppealPage.jsx";
+
 const ADMIN_ROLES = ["admin"];
 const MODERATION_ROLES = ["admin", "moderator"];
 
@@ -53,6 +56,24 @@ const reportRoutes = [
     { path: "reports", element: <ReportsPage />, roles: MODERATION_ROLES },
     { path: "reports/view/:reportId", element: <ReportPage />, roles: MODERATION_ROLES },
     { path: "reports/:status", element: <ReportsPage />, roles: MODERATION_ROLES },
+];
+
+const appealRoutes = [
+    {
+        path: "appeals",
+        element: <AppealsPage />,
+        roles: MODERATION_ROLES,
+    },
+    {
+        path: "appeals/view/:appealId",
+        element: <AppealPage />,
+        roles: MODERATION_ROLES,
+    },
+    {
+        path: "appeals/:status",
+        element: <AppealsPage />,
+        roles: MODERATION_ROLES,
+    },
 ];
 
 const reviewRoutes = [
@@ -86,6 +107,7 @@ const adminRoutes = [
     ...placeRoutes,
     ...userRoutes,
     ...reportRoutes,
+    ...appealRoutes,
     ...reviewRoutes,
     ...contentRoutes,
     ...paymentRoutes,
