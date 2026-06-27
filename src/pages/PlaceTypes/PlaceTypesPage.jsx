@@ -104,8 +104,10 @@ export function PlaceTypesPage() {
         });
     }
 
-    async function handleDelete(type) {
-        if (type.placesCount > 0) {
+    async function handleToggleActive(type) {
+        const nextIsActive = !type.isActive;
+
+        if (!nextIsActive && type.placesCount > 0) {
             return;
         }
 
@@ -113,15 +115,15 @@ export function PlaceTypesPage() {
             setIsSaving(true);
             setErrorMessage("");
 
-            await placeTypesApi.togglePlaceTypeActive(type.id, false);
+            await placeTypesApi.togglePlaceTypeActive(type.id, nextIsActive);
 
-            if (editingTypeId === type.id) {
+            if (!nextIsActive && editingTypeId === type.id) {
                 resetForm();
             }
 
             await reloadData();
         } catch (error) {
-            setErrorMessage(error.message || "Не удалось отключить тип объекта");
+            setErrorMessage(error.message || "Не удалось изменить статус типа объекта");
         } finally {
             setIsSaving(false);
         }
@@ -194,7 +196,7 @@ export function PlaceTypesPage() {
                 <PlaceTypesTable
                     placeTypes={placeTypes}
                     onEdit={handleEdit}
-                    onDelete={handleDelete}
+                    onToggleActive={handleToggleActive}
                 />
             )}
 

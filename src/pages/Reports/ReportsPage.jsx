@@ -11,10 +11,12 @@ import "./ReportsPage.css";
 const STATUS_LABELS = {
     all: "Все",
     new: "Новые",
-    closed: "Закрытые",
+    in_progress: "В работе",
+    resolved: "Решённые",
+    rejected: "Отклонённые",
 };
 
-const STATUS_VALUES = ["all", "new", "closed"];
+const STATUS_VALUES = ["all", "new", "in_progress", "resolved", "rejected"];
 
 function mapReportFromApi(report) {
     const userName = [report.user_first_name, report.user_last_name]

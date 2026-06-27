@@ -174,6 +174,7 @@ export function UserPage() {
                         userId={user.id}
                         subscription={subscription}
                         onUpdated={refreshUser}
+                        canManage={canManageUsers}
                     />
                     <UserSubscriptionsHistory subscriptions={subscriptions} />
                 </aside>

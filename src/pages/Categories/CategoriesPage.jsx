@@ -90,8 +90,10 @@ export function CategoriesPage() {
         });
     }
 
-    async function handleDelete(category) {
-        if (category.placesCount > 0) {
+    async function handleToggleActive(category) {
+        const nextIsActive = !category.isActive;
+
+        if (!nextIsActive && category.placesCount > 0) {
             return;
         }
 
@@ -99,15 +101,15 @@ export function CategoriesPage() {
             setIsSaving(true);
             setErrorMessage("");
 
-            await categoriesApi.toggleCategoryActive(category.id, false);
+            await categoriesApi.toggleCategoryActive(category.id, nextIsActive);
 
-            if (editingCategoryId === category.id) {
+            if (!nextIsActive && editingCategoryId === category.id) {
                 resetForm();
             }
 
             await reloadCategories();
         } catch (error) {
-            setErrorMessage(error.message || "Не удалось отключить категорию");
+            setErrorMessage(error.message || "Не удалось изменить статус категории");
         } finally {
             setIsSaving(false);
         }
@@ -171,7 +173,7 @@ export function CategoriesPage() {
                 <CategoriesTable
                     categories={categories}
                     onEdit={handleEdit}
-                    onDelete={handleDelete}
+                    onToggleActive={handleToggleActive}
                 />
             )}
 

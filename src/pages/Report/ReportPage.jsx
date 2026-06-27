@@ -95,7 +95,7 @@ export function ReportPage() {
 
             await reportsApi.closeReport(report.id);
 
-            navigate("/reports/closed");
+            navigate("/reports/resolved");
         } catch (error) {
             setErrorMessage(error.message || "Не удалось закрыть жалобу");
         } finally {
@@ -205,9 +205,9 @@ export function ReportPage() {
                             <button
                                 type="button"
                                 onClick={handleResolve}
-                                disabled={isActionLoading || report.status === "closed"}
+                                disabled={isActionLoading || report.status === "resolved"}
                             >
-                                {report.status === "closed" ? "Жалоба закрыта" : "Закрыть жалобу"}
+                                {report.status === "resolved" ? "Жалоба закрыта" : "Закрыть жалобу"}
                             </button>
                         </div>
                     </article>

@@ -29,9 +29,10 @@ export const placesApi = {
         });
     },
 
-    rejectPlace(placeId) {
+    rejectPlace(placeId, comment = "") {
         return apiClient.post("/admin/places/reject.php", {
             id: placeId,
+            comment,
         });
     },
 

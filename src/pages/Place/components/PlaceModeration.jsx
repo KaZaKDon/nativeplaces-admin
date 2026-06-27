@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export function PlaceModeration({ onPublish, onReject }) {
+export function PlaceModeration({ onPublish, onReject, isLoading = false }) {
     const [comment, setComment] = useState("");
     const [error, setError] = useState("");
 
@@ -48,14 +48,16 @@ export function PlaceModeration({ onPublish, onReject }) {
                     type="button"
                     className="moderation-button moderation-button--publish"
                     onClick={handlePublish}
+                    disabled={isLoading}
                 >
-                    Опубликовать
+                    {isLoading ? "Сохраняем..." : "Опубликовать"}
                 </button>
 
                 <button
                     type="button"
                     className="moderation-button moderation-button--reject"
                     onClick={handleReject}
+                    disabled={isLoading}
                 >
                     Отклонить
                 </button>

@@ -1,6 +1,6 @@
 import { EmptyState } from "../../../components/EmptyState/EmptyState";
 
-export function CategoriesTable({ categories, onEdit, onDelete }) {
+export function CategoriesTable({ categories, onEdit, onToggleActive }) {
     if (!categories.length) {
         return (
             <EmptyState className="categories-empty">
@@ -19,6 +19,7 @@ export function CategoriesTable({ categories, onEdit, onDelete }) {
                         <th>Код</th>
                         <th>Объявлений</th>
                         <th>Описание</th>
+                        <th>Статус</th>
                         <th>Действия</th>
                     </tr>
                 </thead>
@@ -45,6 +46,8 @@ export function CategoriesTable({ categories, onEdit, onDelete }) {
 
                                 <td>{category.description}</td>
 
+                                <td>{category.isActive ? "Активна" : "Отключена"}</td>
+
                                 <td>
                                     <div className="categories-table-actions">
                                         <button
@@ -58,15 +61,17 @@ export function CategoriesTable({ categories, onEdit, onDelete }) {
                                         <button
                                             className="table-action table-action--danger"
                                             type="button"
-                                            onClick={() => onDelete(category)}
-                                            disabled={!canDelete}
+                                            onClick={() => onToggleActive(category)}
+                                            disabled={category.isActive && !canDelete}
                                             title={
-                                                canDelete
-                                                    ? "Удалить категорию"
-                                                    : "Нельзя удалить категорию с объявлениями"
+                                                category.isActive && !canDelete
+                                                    ? "Нельзя отключить категорию с объявлениями"
+                                                    : category.isActive
+                                                        ? "Отключить категорию"
+                                                        : "Включить категорию"
                                             }
                                         >
-                                            Удалить
+                                            {category.isActive ? "Отключить" : "Включить"}
                                         </button>
                                     </div>
                                 </td>

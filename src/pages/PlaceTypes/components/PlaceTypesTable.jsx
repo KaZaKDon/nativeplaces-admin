@@ -1,6 +1,6 @@
 import { EmptyState } from "../../../components/EmptyState/EmptyState";
 
-export function PlaceTypesTable({ placeTypes, onEdit, onDelete }) {
+export function PlaceTypesTable({ placeTypes, onEdit, onToggleActive }) {
     if (!placeTypes.length) {
         return (
             <EmptyState className="place-types-empty">
@@ -19,6 +19,7 @@ export function PlaceTypesTable({ placeTypes, onEdit, onDelete }) {
                         <th>Название</th>
                         <th>Код</th>
                         <th>Объявлений</th>
+                        <th>Статус</th>
                         <th>Действия</th>
                     </tr>
                 </thead>
@@ -49,6 +50,8 @@ export function PlaceTypesTable({ placeTypes, onEdit, onDelete }) {
 
                                 <td>{type.placesCount}</td>
 
+                                <td>{type.isActive ? "Активен" : "Отключён"}</td>
+
                                 <td>
                                     <div className="place-types-table-actions">
                                         <button
@@ -62,15 +65,17 @@ export function PlaceTypesTable({ placeTypes, onEdit, onDelete }) {
                                         <button
                                             className="table-action table-action--danger"
                                             type="button"
-                                            onClick={() => onDelete(type)}
-                                            disabled={!canDelete}
+                                            onClick={() => onToggleActive(type)}
+                                            disabled={type.isActive && !canDelete}
                                             title={
-                                                canDelete
-                                                    ? "Удалить тип объекта"
-                                                    : "Нельзя удалить тип объекта с объявлениями"
+                                                type.isActive && !canDelete
+                                                    ? "Нельзя отключить тип объекта с объявлениями"
+                                                    : type.isActive
+                                                        ? "Отключить тип объекта"
+                                                        : "Включить тип объекта"
                                             }
                                         >
-                                            Удалить
+                                            {type.isActive ? "Отключить" : "Включить"}
                                         </button>
                                     </div>
                                 </td>

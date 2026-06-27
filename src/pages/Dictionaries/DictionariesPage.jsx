@@ -16,6 +16,7 @@ const emptyDictionaryGroupForm = {
 
 const emptyDictionaryValueForm = {
     title: "",
+    code: "",
 };
 
 function mapGroupFromApi(group) {
@@ -150,6 +151,7 @@ export function DictionariesPage() {
         setEditingValueId(value.id);
         setValueForm({
             title: value.title || "",
+            code: value.code || "",
         });
     }
 
@@ -217,12 +219,13 @@ export function DictionariesPage() {
             if (isEditingValue) {
                 await dictionariesApi.updateValue({
                     id: editingValueId,
-                    title: valueForm.title,
+                    code: valueForm.code,
                 });
             } else {
                 await dictionariesApi.createValue({
                     group_id: selectedGroupId,
                     title: valueForm.title,
+                    code: valueForm.code,
                 });
             }
 

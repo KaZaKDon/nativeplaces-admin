@@ -37,6 +37,7 @@ export function DictionaryValuesTable({ selectedGroup, values, onEdit, onDelete 
                             <tr>
                                 <th>ID</th>
                                 <th>Значение</th>
+                                <th>Код</th>
                                 <th>Действия</th>
                             </tr>
                         </thead>
@@ -52,6 +53,10 @@ export function DictionaryValuesTable({ selectedGroup, values, onEdit, onDelete 
                                         <strong>{value.title}</strong>
                                     </td>
 
+                                    <td>
+                                        <code className="dictionary-code">{value.code}</code>
+                                    </td>
+                                    
                                     <td>
                                         <div className="dictionaries-table-actions">
                                             <button

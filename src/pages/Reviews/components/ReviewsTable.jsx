@@ -4,7 +4,13 @@ import { EmptyState } from "../../../components/EmptyState/EmptyState";
 import { StatusBadge } from "../../../components/StatusBadge/StatusBadge";
 
 function renderRating(rating) {
-    return "★".repeat(rating) + "☆".repeat(5 - rating);
+    const normalizedRating = Number(rating || 0);
+
+    if (normalizedRating <= 0) {
+        return "—";
+    }
+
+    return "★".repeat(normalizedRating) + "☆".repeat(5 - normalizedRating);
 }
 
 export function ReviewsTable({ reviews }) {

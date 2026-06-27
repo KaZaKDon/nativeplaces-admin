@@ -32,7 +32,7 @@ function mapPlanFromApi(plan) {
         price: Number(plan.price || 0),
         durationDays: Number(plan.duration_days || 0),
         placesLimit: Number(plan.max_places || 0),
-        usersCount: 0,
+        usersCount: Number(plan.users_count || 0),
         status: isActive ? "active" : "disabled",
     };
 }

@@ -123,10 +123,10 @@ export function PlacePage() {
         }
     }
 
-    async function handleReject() {
+    async function handleReject(comment) {
         try {
             setIsActionLoading(true);
-            await placesApi.rejectPlace(place.id);
+            await placesApi.rejectPlace(place.id, comment);
             navigate(backTo);
         } catch (error) {
             setErrorMessage(error.message || "Не удалось отклонить объявление");

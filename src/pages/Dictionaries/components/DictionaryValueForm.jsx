@@ -32,7 +32,7 @@ export function DictionaryValueForm({
                 )}
             </div>
 
-            <div className="dictionary-form__grid dictionary-form__grid--single">
+            <div className="dictionary-form__grid">
                 <label className="dictionary-form__field">
                     <span>Значение</span>
                     <input
@@ -40,6 +40,18 @@ export function DictionaryValueForm({
                         value={form.title}
                         onChange={(event) => onChange("title", event.target.value)}
                         placeholder="Например: Щука"
+                        required
+                        disabled={!selectedGroup}
+                    />
+                </label>
+
+                <label className="dictionary-form__field">
+                    <span>Код</span>
+                    <input
+                        type="text"
+                        value={form.code}
+                        onChange={(event) => onChange("code", event.target.value)}
+                        placeholder="Например: pike"
                         required
                         disabled={!selectedGroup}
                     />
